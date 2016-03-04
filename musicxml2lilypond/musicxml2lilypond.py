@@ -101,15 +101,29 @@ class ScoreConverter(object):
             #print e.text
             self.keysig_accs.append(self.list_accidentals[e.text])
         '''
-        
+
         # makam and usul information
+        if self.root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
+            cultural_info = self.root.find('part/measure/direction/direction-type/words').text
+            makam = cultural_info.split(",")[0].split(": ")[1].lower()
+            usul = cultural_info.split(",")[1].split(": ")[1].lower()
+        else:
+            print "Makam and Usul information do not exist."
+
+
+
+
         try:
-            self.information = self.root.find('part/measure/direction/direction-type/words').text
-            self.makam = self.information.split(",")[0].split(": ")[1].lower()
-            self.usul = self.information.split(",")[1].split(": ")[1].lower()
+            cultural_info = self.root.find('part/measure/direction/direction-type/words').text
+            makam = cultural_info.split(",")[0].split(": ")[1].lower()
+            usul = cultural_info.split(",")[1].split(": ")[1].lower()
+            print makam, usul
+            #self.information = self.root.find('part/measure/direction/direction-type/words').text
+            #self.makam = self.information.split(",")[0].split(": ")[1].lower()
+            #self.usul = self.information.split(",")[1].split(": ")[1].lower()
             #print self.usul, self.makam
         except:
-            pass
+            print "No makam and usul information in the xml"
 
         print("rook OK")
         # measure
