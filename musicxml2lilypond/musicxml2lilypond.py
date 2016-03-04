@@ -114,29 +114,32 @@ class ScoreConverter(object):
 
             # all notes in the current measure
             for note_index, note in enumerate(measure.findall('note')):
-                dur = None
-                duration_node = note.find('duration')
-                if duration_node is not None:
-                    dur = note.find('duration').text
 
                 # pitch and octave information of the current note
-                extra = note.find("symbtrid").text  # symbtrid
-                if extra:
-                    extra = int(extra)
-                    step = note.find('pitch/step').text.lower()
-                    oct = note.find('pitch/octave').text
+
+                if note.find("symbtrid").text:  # symbtrid
+                    extra = int(note.find("symbtrid").text)
+
+                if note.find('pitch') is not None:  # if pitch
+                    if note.find('pitch/step').text:  # pitch step
+                        step = note.find('pitch/step').text.lower()
+
+                    if note.find('pitch/octave').text:  # pitch octave
+                        octave = note.find('pitch/octave').text
+
+                    #print extra, step, octave
                     rest = 0
-                else:
-                    try:
-                        rest = note.find('rest')
-                        if isinstance(acc, None):
-                            rest = 0
-                        else:
-                            rest = 1
-                            step = "r"
-                            oct = "r"
-                    except:
-                        rest = 0
+
+                elif note.find('rest') is not None:  # if rest
+                    rest = 1
+                    step = 'r'
+                    octave = 'r'
+                    #print rest, step, octave
+
+                dur = None
+                if 'duration' in note.attrib:
+                    dur = note.find('duration').text
+
 
                 # accident inf
                 try:
