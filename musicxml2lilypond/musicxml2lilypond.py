@@ -73,8 +73,6 @@ class ScoreConverter(object):
 
         # makam and usul
         self.information = None
-        self.makam = None
-        self.usul = None
 
         # accidentals
         self.keysig_accs = []
@@ -89,7 +87,7 @@ class ScoreConverter(object):
 
     def read_musicxml(self):
         # getting key signatures
-        keysig = {} # keys: notes, values: type of note accident
+        keysig = {}  # keys: notes, values: type of note accident
         for xx, key in enumerate(self.root.findall('part/measure/attributes/key/key-step')):
             keysig[key.text] = self.root.findall('part/measure/attributes/key/key-accidental')[xx].text
 
@@ -105,47 +103,30 @@ class ScoreConverter(object):
         # makam and usul information
         if self.root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
             cultural_info = self.root.find('part/measure/direction/direction-type/words').text
-            makam = cultural_info.split(",")[0].split(": ")[1].lower()
-            usul = cultural_info.split(",")[1].split(": ")[1].lower()
+            makam = u''.join(cultural_info.split(",")[0].split(": ")[1].lower()).encode('utf-8').strip()[0]
+            usul = u''.join(cultural_info.split(",")[1].split(": ")[1].lower()).encode('utf-8').strip()[0]
         else:
             print "Makam and Usul information do not exist."
 
-
-
-
-        try:
-            cultural_info = self.root.find('part/measure/direction/direction-type/words').text
-            makam = cultural_info.split(",")[0].split(": ")[1].lower()
-            usul = cultural_info.split(",")[1].split(": ")[1].lower()
-            print makam, usul
-            #self.information = self.root.find('part/measure/direction/direction-type/words').text
-            #self.makam = self.information.split(",")[0].split(": ")[1].lower()
-            #self.usul = self.information.split(",")[1].split(": ")[1].lower()
-            #print self.usul, self.makam
-        except:
-            print "No makam and usul information in the xml"
-
-        print("rook OK")
-        # measure
-        for measure in self.root.findall('part/measure'):
+        # reading the xml measure by measure
+        for measure_index, measure in enumerate(self.root.findall('part/measure')):
             temp_measure = []
 
-            # all notes in selected measure
-            for note in measure.findall('note'):
+            # all notes in the current measure
+            for note_index, note in enumerate(measure.findall('note')):
                 dur = None
                 duration_node = note.find('duration')
                 if duration_node is not None:
                     dur = note.find('duration').text
-                extra = None
-                # note inf
-                try:
-                    extra = note.find("symbtrid").text
-                    if extra:
-                        extra = int(extra)
+
+                # pitch and octave information of the current note
+                extra = note.find("symbtrid").text  # symbtrid
+                if extra:
+                    extra = int(extra)
                     step = note.find('pitch/step').text.lower()
                     oct = note.find('pitch/octave').text
                     rest = 0
-                except:
+                else:
                     try:
                         rest = note.find('rest')
                         if isinstance(acc, None):
@@ -220,9 +201,10 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             self.measure.append(temp_measure)
+        return makam, usul
 
-    def ly_writer(self):
-        curr_path = os.path.dirname(os.path.abspath(__file__))
+    def ly_writer(self, makam, usul):
+        curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
         conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
         c = conn.cursor()
@@ -230,7 +212,7 @@ class ScoreConverter(object):
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
         # getting the components for the given makam
-        c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(self.usul.title()))
+        c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul.title()))
         data = c.fetchone()
         # if beam information is exist
         if data is not None:
@@ -239,7 +221,7 @@ class ScoreConverter(object):
                 self.ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
                 line += 2
         if data is None:
-            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(self.usul.lower()))
+            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(usul.lower()))
             data = c.fetchone()
             if data is not None:
                 if data[-1] is not None:
@@ -352,8 +334,8 @@ class ScoreConverter(object):
   %\\override Score.SpacingSpanner.strict-note-spacing = ##t
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
              """
-        self.read_musicxml()
-        self.ly_writer()
+        makam, usul = self.read_musicxml()
+        self.ly_writer(makam, usul)
         ly_string = " ".join(self.ly_stream)
 
         fname = self.file.split(".")[0]
