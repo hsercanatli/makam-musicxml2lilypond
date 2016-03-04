@@ -1,0 +1,1 @@
+recursive-include musicxml2lilypond/data *.json
