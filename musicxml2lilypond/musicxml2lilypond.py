@@ -89,17 +89,25 @@ class ScoreConverter(object):
 
     def read_musicxml(self):
         # getting key signatures
+        keysig = {} # keys: notes, values: type of note accident
+        for xx, key in enumerate(self.root.findall('part/measure/attributes/key/key-step')):
+            keysig[key.text] = self.root.findall('part/measure/attributes/key/key-accidental')[xx].text
+
+        '''
         for e in self.root.findall('part/measure/attributes/key/key-step'):
+            #print e.text
             self.keysig_keys.append(e.text.lower())
         for e in self.root.findall('part/measure/attributes/key/key-accidental'):
+            #print e.text
             self.keysig_accs.append(self.list_accidentals[e.text])
-
+        '''
+        
         # makam and usul information
         try:
             self.information = self.root.find('part/measure/direction/direction-type/words').text
             self.makam = self.information.split(",")[0].split(": ")[1].lower()
             self.usul = self.information.split(",")[1].split(": ")[1].lower()
-            print self.usul, self.makam
+            #print self.usul, self.makam
         except:
             pass
 
