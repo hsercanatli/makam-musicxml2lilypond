@@ -140,13 +140,9 @@ class ScoreConverter(object):
                     dot = 0
 
                 # tuplet or not
-                try:
-                    tuplet = note.find('time-modification')
-                    if isinstance(acc, None):
-                        tuplet = 0
-                    else:
-                        tuplet = 1
-                except:
+                if note.find('time-modification') is not None:
+                    tuplet = 1
+                else:
                     tuplet = 0
 
                 # lyrics
