@@ -134,13 +134,9 @@ class ScoreConverter(object):
                     acc = 0
 
                 # dotted or not
-                try:
-                    dot = note.find('dot')
-                    if isinstance(acc, None):
-                        dot = 0
-                    else:
-                        dot = 1
-                except:
+                if note.find('dot') is not None:
+                    dot = 1
+                else:
                     dot = 0
 
                 # tuplet or not
