@@ -1,18 +1,38 @@
 # coding=utf-8
 __author__ = 'burakuyar', 'hsercanatli'
+import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
+import os
+import json
 import xml.etree.ElementTree as ET
 import sqlite3
 import codecs
 
+class CommentHandler(ET.XMLTreeBuilder):
+    def __init__(self):
+        ET.XMLTreeBuilder.__init__(self)
+        # assumes ElementTree 1.2.X
+        self._parser.CommentHandler = self.handle_comment
+        self.mapping = {}
+
+    def handle_comment(self, data):
+        self._target.start("symbtrid", {})
+        if data and 'symbtr_txt_note_index' in data:
+            data = data.replace('symbtr_txt_note_index ', '')
+        self._target.data(data)
+        self._target.end("symbtrid")
+
 class ScoreConverter(object):
     def __init__(self, name):
+        self.parser = CommentHandler()
         # io information
         self.file = name
         self.ly_stream = []
 
         # setting the xml tree
-        self.tree = ET.parse(self.file)
+        self.tree = ET.parse(self.file, self.parser)
         self.root = self.tree.getroot()
 
         # koma definitions
@@ -43,6 +63,7 @@ class ScoreConverter(object):
         self.notes_keyaccidentals = {"-8": "(- BUYUKMUCENNEP)", "-5": "(- KUCUK)", "-4": "(- BAKIYE)", "-1": "(- KOMA)",
                                      "+8": "BUYUKMUCENNEP", "+5": "KUCUK", "+4": "BAKIYE", "+1": "KOMA"}
 
+        self.mapping = []
         # tempo
         self.bpm = None
         self.divisions = None
@@ -91,9 +112,16 @@ class ScoreConverter(object):
 
             # all notes in selected measure
             for note in measure.findall('note'):
-                dur = note.find('duration').text
+                dur = None
+                duration_node = note.find('duration')
+                if duration_node != None:
+                    dur = note.find('duration').text
+                extra = None
                 # note inf
                 try:
+                    extra =  note.find("symbtrid").text
+                    if extra:
+                        extra = int(extra)
                     step = note.find('pitch/step').text.lower()
                     oct = note.find('pitch/octave').text
                     rest = 0
@@ -143,20 +171,23 @@ class ScoreConverter(object):
                     else: lyric = lyric
                 except: lyric = ""
 
-                # appending attributes to the temp note
-                normal_dur = int(self.qnotelen * float(dur) / self.divs) / self.qnotelen
-                temp_note = [step, oct, acc, dot, tuplet, rest, normal_dur, lyric]
-                temp_measure.append(temp_note)
+                if dur != None:
+                    # appending attributes to the temp note
+                    normal_dur = int(self.qnotelen * float(dur) / self.divs) / self.qnotelen
+                    temp_note = [step, oct, acc, dot, tuplet, rest, normal_dur, extra, lyric]
+                    temp_measure.append(temp_note)
 
             # adding temp measure to the measure
             self.measure.append(temp_measure)
 
     def ly_writer(self):
-
+        curr_path = os.path.dirname(os.path.abspath(__file__))
         # connecting database, trying to get information for beams in lilypond
-        conn = sqlite3.connect("makam_db")
+        conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
         c = conn.cursor()
 
+        #Starting from 4 because of the lilypond header, defined in main function
+        line = 6
         # getting the components for the given makam
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(self.usul.title()))
         data = c.fetchone()
@@ -165,7 +196,7 @@ class ScoreConverter(object):
             if data[-1] is not None:
                 strokes = data[-1].replace("+", " ")
                 self.ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
-
+                line += 2
         if data is None:
             c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(self.usul.lower()))
             data = c.fetchone()
@@ -173,14 +204,18 @@ class ScoreConverter(object):
                 if data[-1] is not None:
                     strokes = data[-1].replace("+", " ")
                     self.ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
+                    line += 2
 
         self.ly_stream.append("\n\t\\time")
+        line += 1
 
         # time signature
-        try: self.ly_stream.append(self.beats + "/" + self.beat_type)
+        try:
+            self.ly_stream.append(self.beats + "/" + self.beat_type)
         except: print("No time signature!!!")
 
         self.ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
+        line += 2
 
         accidentals_check = []
         temp_keysig = ""
@@ -198,12 +233,19 @@ class ScoreConverter(object):
 
         for xx, measure in enumerate(self.measure):
             self.ly_stream.append("\n\t")
+            line += 1
             self.ly_stream.append("{")
+
             tuplet = 0
 
+            pos = 0
             for note in measure:
-                temp_note = ""
-                temp_dur = 4 / note[6]                                              # normal duration
+                temp_note = "\n\t"
+                line += 1
+                temp_dur = 0
+                # TODO: We don't show the grace notes, for now
+                if note[6] != None:
+                    temp_dur = 4 / note[6]                                          # normal duration
 
                 # dotted
                 if note[3] == 1:                                                    # dot flag
@@ -211,7 +253,7 @@ class ScoreConverter(object):
                     temp_note += self.accidentals[str(note[2])]                     # accidental
                     temp_note += self.octaves[str(note[1])]                         # octave
 
-                    temp_dur = 1 / (2 / temp_dur / 3)
+                    temp_dur = temp_dur * 3 / 2
                     temp_note += str(int(temp_dur))
                     temp_note += "."
 
@@ -239,6 +281,9 @@ class ScoreConverter(object):
                     temp_note += self.octaves[str(note[1])]
                     temp_note += str(int(temp_dur))
 
+                if note[7]:
+                    self.mapping.append((note[7], pos + 4, line))
+
                 # lyrics
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
@@ -246,6 +291,7 @@ class ScoreConverter(object):
                         else: temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
                     else: temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
 
+                pos += len(temp_note) +1
                 self.ly_stream.append(temp_note)
             self.ly_stream.append("} %measure " + str(xx + 1))
         self.ly_stream.append('''\n\t\\bar \"|.\"''')
@@ -264,4 +310,8 @@ class ScoreConverter(object):
         fname = self.file.split(".")[0]
         outfile = codecs.open(fname + ".ly", 'w')
         outfile.write(ly_initial + ly_string + "\n}")
+        outfile.close()
+
+        outfile = codecs.open(fname + ".json", 'w')
+        json.dump(self.mapping, outfile)
         outfile.close()
