@@ -1,3 +1,12 @@
-*.svg
-*.ly
+.idea
+test*.py
 *.pyc
+*.wav
+*.mp3
+*.svg
+/.ipynb_checkpoints
+*.egg-info
+.DS_Store
+*.pdf
+*.qrc~
+*.ly
