@@ -35,23 +35,14 @@ class ScoreConverter(object):
         self.root = self.tree.getroot()
 
         # koma definitions
-        # flats
-        self.b_koma = 'quarter-flat'
-        self.b_bakiyye = 'slash-flat'
-        self.b_kmucennep = 'flat'
-        self.b_bmucennep = 'double-slash-flat'
-
-        # sharps
-        self.d_koma = 'quarter-sharp'
-        self.d_bakiyye = 'sharp'
-        self.d_kmucennep = 'slash-quarter-sharp'
-        self.d_bmucennep = 'slash-sharp'
-
-        # list of accidentals
-        self.list_accidentals = {self.b_koma: "-1", self.b_bakiyye: "-4", self.b_kmucennep: "-5",
-                                 self.b_bmucennep: "-8",
-                                 self.d_koma: "+1", self.d_bakiyye: "+4", self.d_kmucennep: "+5",
-                                 self.d_bmucennep: "+8"}
+        self.makam_accidentals = {'quarter-flat': '-1',
+                                  'slash-flat': '-4',
+                                  'flat': '-5',
+                                  'double-slash-flat': '-8',
+                                  'quarter-sharp': '+1',
+                                  'sharp': '+4',
+                                  'slash-quarter-sharp': '+5',
+                                  'slash-sharp': '+8'}
 
         # octaves and accidentals dictionary
         self.octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
@@ -123,47 +114,23 @@ class ScoreConverter(object):
                 if note.find('pitch') is not None:  # if pitch
                     if note.find('pitch/step').text:  # pitch step
                         step = note.find('pitch/step').text.lower()
-
                     if note.find('pitch/octave').text:  # pitch octave
                         octave = note.find('pitch/octave').text
-
-                    #print extra, step, octave
                     rest = 0
 
                 elif note.find('rest') is not None:  # if rest
                     rest = 1
                     step = 'r'
                     octave = 'r'
-                    #print rest, step, octave
 
-                dur = None
-                if 'duration' in note.attrib:
+                dur = None  # duration
+                if note.find('duration') is not None:
                     dur = note.find('duration').text
 
-
                 # accident inf
-                try:
-                    acc = note.find('accidental').text
-                    if isinstance(acc, None):
-                        acc = 0
-                    elif acc == self.b_koma:
-                        acc = -1
-                    elif acc == self.b_bakiyye:
-                        acc = -4
-                    elif acc == self.b_kmucennep:
-                        acc = -5
-                    elif acc == self.b_bmucennep:
-                        acc = -8
-
-                    elif acc == self.d_koma:
-                        acc = +1
-                    elif acc == self.d_bakiyye:
-                        acc = +4
-                    elif acc == self.d_kmucennep:
-                        acc = +5
-                    elif acc == self.d_bmucennep:
-                        acc = +8
-                except:
+                if note.find('accidental') is not None:
+                    acc = self.makam_accidentals[note.find('accidental').text]
+                else:
                     acc = 0
 
                 # dotted or not
