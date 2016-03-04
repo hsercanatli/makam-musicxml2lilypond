@@ -1,18 +1,16 @@
 # coding=utf-8
-__author__ = 'burakuyar', 'hsercanatli'
-import sys
-reload(sys)
-sys.setdefaultencoding("utf-8")
-
 import os
 import json
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as eT
 import sqlite3
 import codecs
 
-class CommentHandler(ET.XMLTreeBuilder):
+__author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
+
+
+class CommentHandler(eT.XMLTreeBuilder):
     def __init__(self):
-        ET.XMLTreeBuilder.__init__(self)
+        eT.XMLTreeBuilder.__init__(self)
         # assumes ElementTree 1.2.X
         self._parser.CommentHandler = self.handle_comment
         self.mapping = {}
@@ -24,6 +22,7 @@ class CommentHandler(ET.XMLTreeBuilder):
         self._target.data(data)
         self._target.end("symbtrid")
 
+
 class ScoreConverter(object):
     def __init__(self, name):
         self.parser = CommentHandler()
@@ -32,7 +31,7 @@ class ScoreConverter(object):
         self.ly_stream = []
 
         # setting the xml tree
-        self.tree = ET.parse(self.file, self.parser)
+        self.tree = eT.parse(self.file, self.parser)
         self.root = self.tree.getroot()
 
         # koma definitions
@@ -49,8 +48,10 @@ class ScoreConverter(object):
         self.d_bmucennep = 'slash-sharp'
 
         # list of accidentals
-        self.list_accidentals = {self.b_koma: "-1", self.b_bakiyye: "-4", self.b_kmucennep: "-5", self.b_bmucennep: "-8",
-                                 self.d_koma: "+1", self.d_bakiyye: "+4", self.d_kmucennep: "+5", self.d_bmucennep: "+8"}
+        self.list_accidentals = {self.b_koma: "-1", self.b_bakiyye: "-4", self.b_kmucennep: "-5",
+                                 self.b_bmucennep: "-8",
+                                 self.d_koma: "+1", self.d_bakiyye: "+4", self.d_kmucennep: "+5",
+                                 self.d_bmucennep: "+8"}
 
         # octaves and accidentals dictionary
         self.octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
@@ -64,9 +65,11 @@ class ScoreConverter(object):
                                      "+8": "BUYUKMUCENNEP", "+5": "KUCUK", "+4": "BAKIYE", "+1": "KOMA"}
 
         self.mapping = []
+
         # tempo
-        self.bpm = None
-        self.divisions = None
+        self.bpm = float(self.root.find('part/measure/direction/sound').attrib['tempo'])
+        self.divisions = float(self.root.find('part/measure/attributes/divisions').text)
+        self.qnotelen = 60000 / self.bpm
 
         # makam and usul
         self.information = None
@@ -80,15 +83,14 @@ class ScoreConverter(object):
         # list of info of an individual note fetched from xml file
         self.measure = []
 
-    def read_musicxml(self):
-        global step, oct
-
         # getting beats and beat type
-        self.beats = self.bpm = self.root.find('part/measure/attributes/time/beats').text
         self.beat_type = self.bpm = self.root.find('part/measure/attributes/time/beat-type').text
+        self.beats = self.bpm = self.root.find('part/measure/attributes/time/beats').text
 
+    def read_musicxml(self):
         # getting key signatures
-        for e in self.root.findall('part/measure/attributes/key/key-step'): self.keysig_keys.append(e.text.lower())
+        for e in self.root.findall('part/measure/attributes/key/key-step'):
+            self.keysig_keys.append(e.text.lower())
         for e in self.root.findall('part/measure/attributes/key/key-accidental'):
             self.keysig_accs.append(self.list_accidentals[e.text])
 
@@ -98,12 +100,8 @@ class ScoreConverter(object):
             self.makam = self.information.split(",")[0].split(": ")[1].lower()
             self.usul = self.information.split(",")[1].split(": ")[1].lower()
             print self.usul, self.makam
-        except: pass
-
-        # getting bpm
-        self.bpm = float(self.root.find('part/measure/direction/sound').attrib['tempo'])
-        self.divs = float(self.root.find('part/measure/attributes/divisions').text)
-        self.qnotelen = 60000 / self.bpm
+        except:
+            pass
 
         print("rook OK")
         # measure
@@ -114,12 +112,12 @@ class ScoreConverter(object):
             for note in measure.findall('note'):
                 dur = None
                 duration_node = note.find('duration')
-                if duration_node != None:
+                if duration_node is not None:
                     dur = note.find('duration').text
                 extra = None
                 # note inf
                 try:
-                    extra =  note.find("symbtrid").text
+                    extra = note.find("symbtrid").text
                     if extra:
                         extra = int(extra)
                     step = note.find('pitch/step').text.lower()
@@ -128,52 +126,73 @@ class ScoreConverter(object):
                 except:
                     try:
                         rest = note.find('rest')
-                        if type(rest) == type(None): rest = 0
+                        if isinstance(acc, None):
+                            rest = 0
                         else:
                             rest = 1
                             step = "r"
                             oct = "r"
-                    except: rest = 0
+                    except:
+                        rest = 0
 
                 # accident inf
                 try:
                     acc = note.find('accidental').text
-                    if type(acc) == type(None): acc = 0
-                    elif acc == self.b_koma: acc = -1
-                    elif acc == self.b_bakiyye: acc = -4
-                    elif acc == self.b_kmucennep: acc = -5
-                    elif acc == self.b_bmucennep: acc = -8
+                    if isinstance(acc, None):
+                        acc = 0
+                    elif acc == self.b_koma:
+                        acc = -1
+                    elif acc == self.b_bakiyye:
+                        acc = -4
+                    elif acc == self.b_kmucennep:
+                        acc = -5
+                    elif acc == self.b_bmucennep:
+                        acc = -8
 
-                    elif acc == self.d_koma: acc = +1
-                    elif acc == self.d_bakiyye: acc = +4
-                    elif acc == self.d_kmucennep: acc = +5
-                    elif acc == self.d_bmucennep: acc = +8
-                except: acc = 0
+                    elif acc == self.d_koma:
+                        acc = +1
+                    elif acc == self.d_bakiyye:
+                        acc = +4
+                    elif acc == self.d_kmucennep:
+                        acc = +5
+                    elif acc == self.d_bmucennep:
+                        acc = +8
+                except:
+                    acc = 0
 
                 # dotted or not
                 try:
                     dot = note.find('dot')
-                    if type(dot) == type(None): dot = 0
-                    else: dot = 1
-                except: dot = 0
+                    if isinstance(acc, None):
+                        dot = 0
+                    else:
+                        dot = 1
+                except:
+                    dot = 0
 
                 # tuplet or not
                 try:
                     tuplet = note.find('time-modification')
-                    if type(tuplet) == type(None): tuplet = 0
-                    else: tuplet = 1
-                except: tuplet = 0
+                    if isinstance(acc, None):
+                        tuplet = 0
+                    else:
+                        tuplet = 1
+                except:
+                    tuplet = 0
 
                 # lyrics
                 try:
                     lyric = note.find('lyric/text').text
-                    if type(lyric) == type(None): lyric = ""
-                    else: lyric = lyric
-                except: lyric = ""
+                    if isinstance(acc, None):
+                        lyric = ""
+                    else:
+                        lyric = lyric
+                except:
+                    lyric = ""
 
-                if dur != None:
+                if dur is not None:
                     # appending attributes to the temp note
-                    normal_dur = int(self.qnotelen * float(dur) / self.divs) / self.qnotelen
+                    normal_dur = int(self.qnotelen * float(dur) / self.divisions) / self.qnotelen
                     temp_note = [step, oct, acc, dot, tuplet, rest, normal_dur, extra, lyric]
                     temp_measure.append(temp_note)
 
@@ -186,7 +205,7 @@ class ScoreConverter(object):
         conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
         c = conn.cursor()
 
-        #Starting from 4 because of the lilypond header, defined in main function
+        # Starting from 4 because of the lilypond header, defined in main function
         line = 6
         # getting the components for the given makam
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(self.usul.title()))
@@ -212,7 +231,8 @@ class ScoreConverter(object):
         # time signature
         try:
             self.ly_stream.append(self.beats + "/" + self.beat_type)
-        except: print("No time signature!!!")
+        except:
+            print("No time signature!!!")
 
         self.ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
         line += 2
@@ -222,7 +242,8 @@ class ScoreConverter(object):
         for i in range(0, len(self.keysig_keys)):
             accidentals_check.append(self.keysig_keys[i] + self.accidentals[self.keysig_accs[i].replace("+", "")])
             temp_keysig += "("
-            temp_keysig += "( 0 . " + str(self.notes_western2lily[self.keysig_keys[i]]) + "). , " + str(self.notes_keyaccidentals[self.keysig_accs[i]])
+            temp_keysig += "( 0 . " + str(self.notes_western2lily[self.keysig_keys[i]]) + "). , " + str(
+                self.notes_keyaccidentals[self.keysig_accs[i]])
             temp_keysig += ")"
 
             self.ly_stream.append(temp_keysig)
@@ -244,27 +265,27 @@ class ScoreConverter(object):
                 line += 1
                 temp_dur = 0
                 # TODO: We don't show the grace notes, for now
-                if note[6] != None:
-                    temp_dur = 4 / note[6]                                          # normal duration
+                if note[6] is not None:
+                    temp_dur = 4 / note[6]  # normal duration
 
                 # dotted
-                if note[3] == 1:                                                    # dot flag
-                    temp_note += str(note[0])                                       # step
-                    temp_note += self.accidentals[str(note[2])]                     # accidental
-                    temp_note += self.octaves[str(note[1])]                         # octave
+                if note[3] == 1:  # dot flag
+                    temp_note += str(note[0])  # step
+                    temp_note += self.accidentals[str(note[2])]  # accidental
+                    temp_note += self.octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 3 / 2
                     temp_note += str(int(temp_dur))
                     temp_note += "."
 
                 # tuplet
-                elif note[4] == 1:                                                  # tuplet flag
+                elif note[4] == 1:  # tuplet flag
                     if tuplet == 0:
                         tuplet = 4
                         temp_note += "\\tuplet 3/2 {"
-                    temp_note += str(note[0])                                       # step
-                    temp_note += self.accidentals[str(note[2])]                     # accidental
-                    temp_note += self.octaves[str(note[1])]                         # octave
+                    temp_note += str(note[0])  # step
+                    temp_note += self.accidentals[str(note[2])]  # accidental
+                    temp_note += self.octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 2 / 3
                     temp_note += str(int(temp_dur))
@@ -287,11 +308,17 @@ class ScoreConverter(object):
                 # lyrics
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
-                        if note[-1][1].isupper(): temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
-                        else: temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
-                    else: temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                        if note[-1][1].isupper():
+                            temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
+                                         u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                        else:
+                            temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
+                                         u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                    else:
+                        temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
+                                     u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
 
-                pos += len(temp_note) +1
+                pos += len(temp_note) + 1
                 self.ly_stream.append(temp_note)
             self.ly_stream.append("} %measure " + str(xx + 1))
         self.ly_stream.append('''\n\t\\bar \"|.\"''')
