@@ -25,31 +25,8 @@ class CommentHandler(eT.XMLTreeBuilder):
 
 class ScoreConverter(object):
     def __init__(self):
-        # io information
-
         # octaves and accidentals dictionary
-        self.octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
-        self.accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
-                            "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
-
-        # notes and accidentals dictionary lilypond
-        self.notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "10"}
-
-        self.notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
-                                     'flat': "(- KUCUK)",
-                                     'slash-flat': "(- BAKIYE)",
-                                     'quarter-flat': "(- KOMA)",
-                                     'slash-sharp': "BUYUKMUCENNEP",
-                                     'slash-quarter-sharp': "KUCUK",
-                                     'sharp': "BAKIYE",
-                                     'quarter-sharp': "KOMA"}
-
         self.mapping = []
-        # makam and usul
-        self.information = None
-
-
-        # list of info of an individual note fetched from xml file
 
     @staticmethod
     def read_musicxml(fname):
@@ -164,6 +141,22 @@ class ScoreConverter(object):
         return measures, makam, usul, form, bpm, beats, beat_type, keysig
 
     def ly_writer(self, measures, makam, usul, form, bpm, beats, beat_type, keysig):
+        octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
+        accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
+                            "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
+
+        # notes and accidentals dictionary lilypond
+        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "10"}
+
+        notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
+                                     'flat': "(- KUCUK)",
+                                     'slash-flat': "(- BAKIYE)",
+                                     'quarter-flat': "(- KOMA)",
+                                     'slash-sharp': "BUYUKMUCENNEP",
+                                     'slash-quarter-sharp': "KUCUK",
+                                     'sharp': "BAKIYE",
+                                     'quarter-sharp': "KOMA"}
+
         makam_accidents = {'quarter-flat': '-1',
                            'slash-flat': '-4',
                            'flat': '-5',
@@ -203,34 +196,19 @@ class ScoreConverter(object):
         line += 1
 
         # time signature
-        try:
-            ly_stream.append(beats + "/" + beat_type)
-        except:
-            print("No time signature!!!")
+        ly_stream.append(beats + "/" + beat_type)
 
         ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
         line += 2
 
         accidentals_check = []
         temp_keysig = ""
-        print keysig
-        '''
-        for i in range(0, len(self.keysig_keys)):
-            accidentals_check.append(self.keysig_keys[i] + self.accidentals[self.keysig_accs[i].replace("+", "")])
-            temp_keysig += "("
-            temp_keysig += "( 0 . " + str(self.notes_western2lily[self.keysig_keys[i]]) + "). , " + str(
-                self.notes_keyaccidentals[self.keysig_accs[i]])
-            temp_keysig += ")"
-
-            self.ly_stream.append(temp_keysig)
-            temp_keysig = ""
-        '''
 
         for key in keysig:
             accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
             temp_keysig += "("
-            temp_keysig += "( 0 . " + str(self.notes_western2lily[key.lower()]) + "). , " + \
-                           str(self.notes_keyaccidentals[keysig[key]])
+            temp_keysig += "( 0 . " + str(notes_western2lily[key.lower()]) + "). , " + \
+                           str(notes_keyaccidentals[keysig[key]])
             temp_keysig += ")"
 
             ly_stream.append(temp_keysig)
@@ -257,8 +235,8 @@ class ScoreConverter(object):
                 # dotted
                 if note[3] == 1:  # dot flag
                     temp_note += str(note[0])  # step
-                    temp_note += self.accidentals[str(note[2]).replace('+', '')]  # accidental
-                    temp_note += self.octaves[str(note[1])]  # octave
+                    temp_note += accidentals[str(note[2]).replace('+', '')]  # accidental
+                    temp_note += octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 3 / 2
                     temp_note += str(int(temp_dur))
@@ -268,24 +246,21 @@ class ScoreConverter(object):
                 elif note[4] == 1:  # tuplet flag
                     if tuplet == 0:
                         tuplet = 4
-                        temp_note += "\\tuplet 3/2 {"
+                        temp_note += "\\tuplet 3/2 {\n\t"
                     temp_note += str(note[0])  # step
-                    temp_note += self.accidentals[str(note[2]).replace('+', '')]  # accidental
-                    temp_note += self.octaves[str(note[1])]  # octave
+                    temp_note += accidentals[str(note[2]).replace('+', '')]  # accidental
+                    temp_note += octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 2 / 3
                     temp_note += str(int(temp_dur))
 
                     tuplet -= 1
-                    if tuplet == 1:
-                        temp_note += " }"
-                        tuplet = 0
 
                 # nor
                 else:
                     temp_note += str(note[0])
-                    temp_note += self.accidentals[str(note[2]).replace('+', '')]
-                    temp_note += self.octaves[str(note[1])]
+                    temp_note += accidentals[str(note[2]).replace('+', '')]
+                    temp_note += octaves[str(note[1])]
                     temp_note += str(int(temp_dur))
 
                 if note[7]:
@@ -304,6 +279,9 @@ class ScoreConverter(object):
                         temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
                                      u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
 
+                if tuplet == 1:
+                        temp_note += " }"
+                        tuplet = 0
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
             ly_stream.append("} %measure " + str(xx + 1))
@@ -327,8 +305,6 @@ class ScoreConverter(object):
         outfile.write(ly_initial + ly_string + "\n}")
         outfile.close()
 
-'''
         outfile = codecs.open(fname + ".json", 'w')
         json.dump(self.mapping, outfile)
         outfile.close()
-'''
