@@ -147,7 +147,6 @@ class ScoreConverter(object):
 
                 # lyrics
                 if note.find('lyric/text').text is not None:
-                    print note.find('lyric/text').text, type(note.find('lyric/text').text)
                     lyric = note.find('lyric/text').text
                 else:
                     lyric = ''
@@ -155,8 +154,9 @@ class ScoreConverter(object):
                 if dur is not None:
                     # appending attributes to the temp note
                     normal_dur = int(self.qnotelen * float(dur) / self.divisions) / self.qnotelen
-                    temp_note = [step, oct, acc, dot, tuplet, rest, normal_dur, extra, lyric]
-                    temp_measure.append(temp_note)
+
+                temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur, extra, lyric]
+                temp_measure.append(temp_note)
 
             # adding temp measure to the measure
             self.measure.append(temp_measure)
