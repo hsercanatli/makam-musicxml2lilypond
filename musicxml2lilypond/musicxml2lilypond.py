@@ -56,16 +56,17 @@ class ScoreConverter(object):
         # koma definitions
         """
 
+        :param fname:
         :rtype: object
         """
         makam_accidents = {'quarter-flat': '-1',
                            'slash-flat': '-4',
-                            'flat': '-5',
-                            'double-slash-flat': '-8',
-                            'quarter-sharp': '+1',
-                            'sharp': '+4',
-                            'slash-quarter-sharp': '+5',
-                            'slash-sharp': '+8'}
+                           'flat': '-5',
+                           'double-slash-flat': '-8',
+                           'quarter-sharp': '+1',
+                           'sharp': '+4',
+                           'slash-quarter-sharp': '+5',
+                           'slash-sharp': '+8'}
 
         # setting the xml tree
         parser = CommentHandler()
@@ -94,8 +95,9 @@ class ScoreConverter(object):
         # makam and usul information
         if root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
             cultural_info = root.find('part/measure/direction/direction-type/words').text
-            makam = u''.join(cultural_info.split(",")[0].split(": ")[1].lower()).encode('utf-8').strip()[0]
-            usul = u''.join(cultural_info.split(",")[1].split(": ")[1].lower()).encode('utf-8').strip()[0]
+            makam = u''.join(cultural_info.split(",")[0].split(": ")[1]).encode('utf-8').strip()
+            form = u''.join(cultural_info.split(",")[1].split(": ")[1]).encode('utf-8').strip()
+            usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).encode('utf-8').strip()
         else:
             print "Makam and Usul information do not exist."
 
@@ -162,14 +164,16 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul
+        return measures, makam, usul, form
 
-    def ly_writer(self, makam, usul):
+    def ly_writer(self, measures, makam, usul):
+        ly_stream = []
         '''
         # getting beats and beat type
         beat_type = bpm = root.find('part/measure/attributes/time/beat-type').text
         beats = bpm = root.find('part/measure/attributes/time/beats').text
         '''
+
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
         conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
@@ -178,7 +182,8 @@ class ScoreConverter(object):
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
         # getting the components for the given makam
-        c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul.title()))
+        print usul
+        c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
         data = c.fetchone()
         # if beam information is exist
         if data is not None:
@@ -197,6 +202,7 @@ class ScoreConverter(object):
 
         self.ly_stream.append("\n\t\\time")
         line += 1
+        print self.ly_stream
 
         # time signature
         try:
@@ -301,8 +307,8 @@ class ScoreConverter(object):
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
              """
 
-
-        #self.ly_writer(makam, usul)
+        measure, makam, usul, form = self.read_musicxml(fname)
+        self.ly_writer(measure, makam, usul)
         #ly_string = " ".join(self.ly_stream)
 
 '''
