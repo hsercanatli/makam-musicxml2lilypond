@@ -26,7 +26,6 @@ class CommentHandler(eT.XMLTreeBuilder):
 class ScoreConverter(object):
     def __init__(self):
         # io information
-        self.ly_stream = []
 
         # octaves and accidentals dictionary
         self.octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
@@ -51,7 +50,6 @@ class ScoreConverter(object):
 
 
         # list of info of an individual note fetched from xml file
-        self.measure = []
 
     @staticmethod
     def read_musicxml(fname):
@@ -240,14 +238,14 @@ class ScoreConverter(object):
 
         ly_stream.append(")")
 
-        for xx, measure in enumerate(self.measure):
-            self.ly_stream.append("\n\t")
+        for xx, measure in enumerate(measures):
+            ly_stream.append("\n\t")
             line += 1
-            self.ly_stream.append("{")
+            ly_stream.append("{")
 
             tuplet = 0
-
             pos = 0
+
             for note in measure:
                 temp_note = "\n\t"
                 line += 1
@@ -259,7 +257,7 @@ class ScoreConverter(object):
                 # dotted
                 if note[3] == 1:  # dot flag
                     temp_note += str(note[0])  # step
-                    temp_note += self.accidentals[str(note[2])]  # accidental
+                    temp_note += self.accidentals[str(note[2]).replace('+', '')]  # accidental
                     temp_note += self.octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 3 / 2
@@ -272,7 +270,7 @@ class ScoreConverter(object):
                         tuplet = 4
                         temp_note += "\\tuplet 3/2 {"
                     temp_note += str(note[0])  # step
-                    temp_note += self.accidentals[str(note[2])]  # accidental
+                    temp_note += self.accidentals[str(note[2]).replace('+', '')]  # accidental
                     temp_note += self.octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 2 / 3
@@ -286,7 +284,7 @@ class ScoreConverter(object):
                 # nor
                 else:
                     temp_note += str(note[0])
-                    temp_note += self.accidentals[str(note[2])]
+                    temp_note += self.accidentals[str(note[2]).replace('+', '')]
                     temp_note += self.octaves[str(note[1])]
                     temp_note += str(int(temp_dur))
 
@@ -307,9 +305,10 @@ class ScoreConverter(object):
                                      u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
 
                 pos += len(temp_note) + 1
-                self.ly_stream.append(temp_note)
-            self.ly_stream.append("} %measure " + str(xx + 1))
-        self.ly_stream.append('''\n\t\\bar \"|.\"''')
+                ly_stream.append(temp_note)
+            ly_stream.append("} %measure " + str(xx + 1))
+        ly_stream.append('''\n\t\\bar \"|.\"''')
+        return ly_stream
 
     def run(self, fname):
         ly_initial = """
@@ -320,15 +319,14 @@ class ScoreConverter(object):
              """
 
         measures, makam, usul, form, bpm, beats, beat_type, keysig = self.read_musicxml(fname)
-        self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
-        #ly_string = " ".join(self.ly_stream)
+        ly_stream = self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
+        ly_string = " ".join(ly_stream)
 
-'''
-        fname = self.file.split(".")[0]
+        fname = fname.split(".")[0]
         outfile = codecs.open(fname + ".ly", 'w')
         outfile.write(ly_initial + ly_string + "\n}")
         outfile.close()
-'''
+
 '''
         outfile = codecs.open(fname + ".json", 'w')
         json.dump(self.mapping, outfile)
