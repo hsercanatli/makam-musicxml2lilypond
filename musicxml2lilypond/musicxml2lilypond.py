@@ -24,25 +24,9 @@ class CommentHandler(eT.XMLTreeBuilder):
 
 
 class ScoreConverter(object):
-    def __init__(self, name):
-        self.parser = CommentHandler()
+    def __init__(self):
         # io information
-        self.file = name
         self.ly_stream = []
-
-        # setting the xml tree
-        self.tree = eT.parse(self.file, self.parser)
-        self.root = self.tree.getroot()
-
-        # koma definitions
-        self.makam_accidentals = {'quarter-flat': '-1',
-                                  'slash-flat': '-4',
-                                  'flat': '-5',
-                                  'double-slash-flat': '-8',
-                                  'quarter-sharp': '+1',
-                                  'sharp': '+4',
-                                  'slash-quarter-sharp': '+5',
-                                  'slash-sharp': '+8'}
 
         # octaves and accidentals dictionary
         self.octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
@@ -57,11 +41,6 @@ class ScoreConverter(object):
 
         self.mapping = []
 
-        # tempo
-        self.bpm = float(self.root.find('part/measure/direction/sound').attrib['tempo'])
-        self.divisions = float(self.root.find('part/measure/attributes/divisions').text)
-        self.qnotelen = 60000 / self.bpm
-
         # makam and usul
         self.information = None
 
@@ -72,15 +51,36 @@ class ScoreConverter(object):
         # list of info of an individual note fetched from xml file
         self.measure = []
 
-        # getting beats and beat type
-        self.beat_type = self.bpm = self.root.find('part/measure/attributes/time/beat-type').text
-        self.beats = self.bpm = self.root.find('part/measure/attributes/time/beats').text
+    @staticmethod
+    def read_musicxml(fname):
+        # koma definitions
+        """
 
-    def read_musicxml(self):
+        :rtype: object
+        """
+        makam_accidents = {'quarter-flat': '-1',
+                           'slash-flat': '-4',
+                            'flat': '-5',
+                            'double-slash-flat': '-8',
+                            'quarter-sharp': '+1',
+                            'sharp': '+4',
+                            'slash-quarter-sharp': '+5',
+                            'slash-sharp': '+8'}
+
+        # setting the xml tree
+        parser = CommentHandler()
+        tree = eT.parse(fname, parser)
+        root = tree.getroot()
+
+        # tempo
+        bpm = float(root.find('part/measure/direction/sound').attrib['tempo'])
+        divisions = float(root.find('part/measure/attributes/divisions').text)
+        qnotelen = 60000 / bpm
+
         # getting key signatures
         keysig = {}  # keys: notes, values: type of note accident
-        for xx, key in enumerate(self.root.findall('part/measure/attributes/key/key-step')):
-            keysig[key.text] = self.root.findall('part/measure/attributes/key/key-accidental')[xx].text
+        for xx, key in enumerate(root.findall('part/measure/attributes/key/key-step')):
+            keysig[key.text] = root.findall('part/measure/attributes/key/key-accidental')[xx].text
 
         '''
         for e in self.root.findall('part/measure/attributes/key/key-step'):
@@ -92,17 +92,18 @@ class ScoreConverter(object):
         '''
 
         # makam and usul information
-        if self.root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
-            cultural_info = self.root.find('part/measure/direction/direction-type/words').text
+        if root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
+            cultural_info = root.find('part/measure/direction/direction-type/words').text
             makam = u''.join(cultural_info.split(",")[0].split(": ")[1].lower()).encode('utf-8').strip()[0]
             usul = u''.join(cultural_info.split(",")[1].split(": ")[1].lower()).encode('utf-8').strip()[0]
         else:
             print "Makam and Usul information do not exist."
 
+        measures = []
         # reading the xml measure by measure
-        for measure_index, measure in enumerate(self.root.findall('part/measure')):
-            temp_measure = []
+        for measure_index, measure in enumerate(root.findall('part/measure')):
 
+            temp_measure = []
             # all notes in the current measure
             for note_index, note in enumerate(measure.findall('note')):
 
@@ -111,6 +112,7 @@ class ScoreConverter(object):
                 if note.find("symbtrid").text:  # symbtrid
                     extra = int(note.find("symbtrid").text)
 
+                # pitch and octave information of the current note
                 if note.find('pitch') is not None:  # if pitch
                     if note.find('pitch/step').text:  # pitch step
                         step = note.find('pitch/step').text.lower()
@@ -129,7 +131,7 @@ class ScoreConverter(object):
 
                 # accident inf
                 if note.find('accidental') is not None:
-                    acc = self.makam_accidentals[note.find('accidental').text]
+                    acc = makam_accidents[note.find('accidental').text]
                 else:
                     acc = 0
 
@@ -153,16 +155,21 @@ class ScoreConverter(object):
 
                 if dur is not None:
                     # appending attributes to the temp note
-                    normal_dur = int(self.qnotelen * float(dur) / self.divisions) / self.qnotelen
+                    normal_dur = int(qnotelen * float(dur) / divisions) / qnotelen
 
                 temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur, extra, lyric]
                 temp_measure.append(temp_note)
 
             # adding temp measure to the measure
-            self.measure.append(temp_measure)
-        return makam, usul
+            measures.append(temp_measure)
+        return measures, makam, usul
 
     def ly_writer(self, makam, usul):
+        '''
+        # getting beats and beat type
+        beat_type = bpm = root.find('part/measure/attributes/time/beat-type').text
+        beats = bpm = root.find('part/measure/attributes/time/beats').text
+        '''
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
         conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
@@ -286,22 +293,26 @@ class ScoreConverter(object):
             self.ly_stream.append("} %measure " + str(xx + 1))
         self.ly_stream.append('''\n\t\\bar \"|.\"''')
 
-    def run(self):
+    def run(self, fname):
         ly_initial = """
 \\include "makam.ly"
 {
   %\\override Score.SpacingSpanner.strict-note-spacing = ##t
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
              """
-        makam, usul = self.read_musicxml()
-        self.ly_writer(makam, usul)
-        ly_string = " ".join(self.ly_stream)
 
+
+        #self.ly_writer(makam, usul)
+        #ly_string = " ".join(self.ly_stream)
+
+'''
         fname = self.file.split(".")[0]
         outfile = codecs.open(fname + ".ly", 'w')
         outfile.write(ly_initial + ly_string + "\n}")
         outfile.close()
-
+'''
+'''
         outfile = codecs.open(fname + ".json", 'w')
         json.dump(self.mapping, outfile)
         outfile.close()
+'''
