@@ -36,17 +36,19 @@ class ScoreConverter(object):
         # notes and accidentals dictionary lilypond
         self.notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "10"}
 
-        self.notes_keyaccidentals = {"-8": "(- BUYUKMUCENNEP)", "-5": "(- KUCUK)", "-4": "(- BAKIYE)", "-1": "(- KOMA)",
-                                     "+8": "BUYUKMUCENNEP", "+5": "KUCUK", "+4": "BAKIYE", "+1": "KOMA"}
+        self.notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
+                                     'flat': "(- KUCUK)",
+                                     'slash-flat': "(- BAKIYE)",
+                                     'quarter-flat': "(- KOMA)",
+                                     'slash-sharp': "BUYUKMUCENNEP",
+                                     'slash-quarter-sharp': "KUCUK",
+                                     'sharp': "BAKIYE",
+                                     'quarter-sharp': "KOMA"}
 
         self.mapping = []
-
         # makam and usul
         self.information = None
 
-        # accidentals
-        self.keysig_accs = []
-        self.keysig_keys = []
 
         # list of info of an individual note fetched from xml file
         self.measure = []
@@ -78,19 +80,16 @@ class ScoreConverter(object):
         divisions = float(root.find('part/measure/attributes/divisions').text)
         qnotelen = 60000 / bpm
 
+
+        # getting beats and beat type
+        beat_type = root.find('part/measure/attributes/time/beat-type').text
+        beats = root.find('part/measure/attributes/time/beats').text
+
+
         # getting key signatures
         keysig = {}  # keys: notes, values: type of note accident
         for xx, key in enumerate(root.findall('part/measure/attributes/key/key-step')):
             keysig[key.text] = root.findall('part/measure/attributes/key/key-accidental')[xx].text
-
-        '''
-        for e in self.root.findall('part/measure/attributes/key/key-step'):
-            #print e.text
-            self.keysig_keys.append(e.text.lower())
-        for e in self.root.findall('part/measure/attributes/key/key-accidental'):
-            #print e.text
-            self.keysig_accs.append(self.list_accidentals[e.text])
-        '''
 
         # makam and usul information
         if root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
@@ -164,15 +163,18 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul, form
+        return measures, makam, usul, form, bpm, beats, beat_type, keysig
 
-    def ly_writer(self, measures, makam, usul):
+    def ly_writer(self, measures, makam, usul, form, bpm, beats, beat_type, keysig):
+        makam_accidents = {'quarter-flat': '-1',
+                           'slash-flat': '-4',
+                           'flat': '-5',
+                           'double-slash-flat': '-8',
+                           'quarter-sharp': '+1',
+                           'sharp': '+4',
+                           'slash-quarter-sharp': '+5',
+                           'slash-sharp': '+8'}
         ly_stream = []
-        '''
-        # getting beats and beat type
-        beat_type = bpm = root.find('part/measure/attributes/time/beat-type').text
-        beats = bpm = root.find('part/measure/attributes/time/beats').text
-        '''
 
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
@@ -181,40 +183,40 @@ class ScoreConverter(object):
 
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
-        # getting the components for the given makam
-        print usul
+        # getting the components for the given usul
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
         data = c.fetchone()
         # if beam information is exist
         if data is not None:
             if data[-1] is not None:
                 strokes = data[-1].replace("+", " ")
-                self.ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
+                ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
                 line += 2
         if data is None:
             c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(usul.lower()))
-            data = c.fetchone()
-            if data is not None:
+            new_data = c.fetchone()
+            if new_data is not None:
                 if data[-1] is not None:
-                    strokes = data[-1].replace("+", " ")
-                    self.ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
+                    strokes = new_data[-1].replace("+", " ")
+                    ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
                     line += 2
 
-        self.ly_stream.append("\n\t\\time")
+        ly_stream.append("\n\t\\time")
         line += 1
-        print self.ly_stream
 
         # time signature
         try:
-            self.ly_stream.append(self.beats + "/" + self.beat_type)
+            ly_stream.append(beats + "/" + beat_type)
         except:
             print("No time signature!!!")
 
-        self.ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
+        ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
         line += 2
 
         accidentals_check = []
         temp_keysig = ""
+        print keysig
+        '''
         for i in range(0, len(self.keysig_keys)):
             accidentals_check.append(self.keysig_keys[i] + self.accidentals[self.keysig_accs[i].replace("+", "")])
             temp_keysig += "("
@@ -224,9 +226,19 @@ class ScoreConverter(object):
 
             self.ly_stream.append(temp_keysig)
             temp_keysig = ""
+        '''
 
-        self.ly_stream.append(")")
-        print accidentals_check
+        for key in keysig:
+            accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
+            temp_keysig += "("
+            temp_keysig += "( 0 . " + str(self.notes_western2lily[key.lower()]) + "). , " + \
+                           str(self.notes_keyaccidentals[keysig[key]])
+            temp_keysig += ")"
+
+            ly_stream.append(temp_keysig)
+            temp_keysig = ""
+
+        ly_stream.append(")")
 
         for xx, measure in enumerate(self.measure):
             self.ly_stream.append("\n\t")
@@ -307,8 +319,8 @@ class ScoreConverter(object):
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
              """
 
-        measure, makam, usul, form = self.read_musicxml(fname)
-        self.ly_writer(measure, makam, usul)
+        measures, makam, usul, form, bpm, beats, beat_type, keysig = self.read_musicxml(fname)
+        self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
         #ly_string = " ".join(self.ly_stream)
 
 '''
