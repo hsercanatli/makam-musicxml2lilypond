@@ -146,14 +146,11 @@ class ScoreConverter(object):
                     tuplet = 0
 
                 # lyrics
-                try:
+                if note.find('lyric/text').text is not None:
+                    print note.find('lyric/text').text, type(note.find('lyric/text').text)
                     lyric = note.find('lyric/text').text
-                    if isinstance(acc, None):
-                        lyric = ""
-                    else:
-                        lyric = lyric
-                except:
-                    lyric = ""
+                else:
+                    lyric = ''
 
                 if dur is not None:
                     # appending attributes to the temp note
