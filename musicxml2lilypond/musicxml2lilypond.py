@@ -55,11 +55,9 @@ class ScoreConverter(object):
         divisions = float(root.find('part/measure/attributes/divisions').text)
         qnotelen = 60000 / bpm
 
-
         # getting beats and beat type
         beat_type = root.find('part/measure/attributes/time/beat-type').text
         beats = root.find('part/measure/attributes/time/beats').text
-
 
         # getting key signatures
         keysig = {}  # keys: notes, values: type of note accident
@@ -141,21 +139,27 @@ class ScoreConverter(object):
         return measures, makam, usul, form, bpm, beats, beat_type, keysig
 
     def ly_writer(self, measures, makam, usul, form, bpm, beats, beat_type, keysig):
+        ly_stream = ["""
+\\include "makam.ly"
+{
+  %\\override Score.SpacingSpanner.strict-note-spacing = ##t
+  %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
+             """]
         octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
         accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
-                            "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
+                       "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
 
         # notes and accidentals dictionary lilypond
         notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "10"}
 
         notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
-                                     'flat': "(- KUCUK)",
-                                     'slash-flat': "(- BAKIYE)",
-                                     'quarter-flat': "(- KOMA)",
-                                     'slash-sharp': "BUYUKMUCENNEP",
-                                     'slash-quarter-sharp': "KUCUK",
-                                     'sharp': "BAKIYE",
-                                     'quarter-sharp': "KOMA"}
+                                'flat': "(- KUCUK)",
+                                'slash-flat': "(- BAKIYE)",
+                                'quarter-flat': "(- KOMA)",
+                                'slash-sharp': "BUYUKMUCENNEP",
+                                'slash-quarter-sharp': "KUCUK",
+                                'sharp': "BAKIYE",
+                                'quarter-sharp': "KOMA"}
 
         makam_accidents = {'quarter-flat': '-1',
                            'slash-flat': '-4',
@@ -165,7 +169,6 @@ class ScoreConverter(object):
                            'sharp': '+4',
                            'slash-quarter-sharp': '+5',
                            'slash-sharp': '+8'}
-        ly_stream = []
 
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
@@ -177,6 +180,7 @@ class ScoreConverter(object):
         # getting the components for the given usul
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
         data = c.fetchone()
+
         # if beam information is exist
         if data is not None:
             if data[-1] is not None:
@@ -280,29 +284,21 @@ class ScoreConverter(object):
                                      u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
 
                 if tuplet == 1:
-                        temp_note += " }"
-                        tuplet = 0
+                    temp_note += "\n\t }"
+                    tuplet = 0
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
             ly_stream.append("} %measure " + str(xx + 1))
-        ly_stream.append('''\n\t\\bar \"|.\"''')
+        ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream
 
     def run(self, fname):
-        ly_initial = """
-\\include "makam.ly"
-{
-  %\\override Score.SpacingSpanner.strict-note-spacing = ##t
-  %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
-             """
-
         measures, makam, usul, form, bpm, beats, beat_type, keysig = self.read_musicxml(fname)
         ly_stream = self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
-        ly_string = " ".join(ly_stream)
 
         fname = fname.split(".")[0]
         outfile = codecs.open(fname + ".ly", 'w')
-        outfile.write(ly_initial + ly_string + "\n}")
+        outfile.write(''.join(ly_stream))
         outfile.close()
 
         outfile = codecs.open(fname + ".json", 'w')
