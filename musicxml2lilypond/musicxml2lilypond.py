@@ -27,11 +27,11 @@ class ScoreConverter(object):
         pass
 
     @staticmethod
-    def read_musicxml(fname):
+    def read_musicxml(filename):
         # koma definitions
         """
 
-        :param fname:
+        :param filename:
         :rtype: object
         """
         makam_accidents = {'quarter-flat': '-1',
@@ -45,7 +45,7 @@ class ScoreConverter(object):
 
         # setting the xml tree
         parser = CommentHandler()
-        tree = eT.parse(fname, parser)
+        tree = eT.parse(filename, parser)
         root = tree.getroot()
 
         # tempo
@@ -134,18 +134,40 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul, form, bpm, beats, beat_type, keysig
+        return measures, makam, usul, form, beats, beat_type, keysig
 
-    def ly_writer(self, measures, makam, usul, form, bpm, beats, beat_type, keysig):
+    @staticmethod
+    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type, keysig):
         mapping = []
 
+        curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
+        # connecting database, trying to get information for beams in lilypond
+        conn = sqlite3.connect(os.path.join(curr_path, "symbtr.db"))
+        c = conn.cursor()
+
+        # getting headers
+
+        c.execute('SELECT * FROM work WHERE SYMBTR="{0}"'.format(''.join(symbtr).encode('utf-8')))
+        metadata = c.fetchone()
+
+        title = ''.join(metadata[2]).encode('utf-8')
+        composer = ''.join(metadata[4]).encode('utf-8')
+
         ly_stream = ["""
-\\include "makam.ly"
+\\include "makam.ly" """ + """
+\\header { """ + """
+      tagline = \"\"
+      title = \"{0}\"
+      composer = \"{1}\"
+      meter = \"Usul {2}\"
+      piece = \"Makam: {3}\"""".format(title, composer, usul, makam) + "\n}" + """
 {
   %\\override Score.SpacingSpanner.strict-note-spacing = ##t
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
              """]
+
         octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
+
         accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
                        "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
 
@@ -172,11 +194,6 @@ class ScoreConverter(object):
 
         sort_rule = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
         sort_rule_notes = {0: 'F', 1: 'C', 2: 'G', 3: 'G', 4: 'A', 5: 'E', 6: 'B'}
-
-        curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
-        # connecting database, trying to get information for beams in lilypond
-        conn = sqlite3.connect(os.path.join(curr_path, "makam_db"))
-        c = conn.cursor()
 
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
@@ -228,7 +245,7 @@ class ScoreConverter(object):
         for xx, measure in enumerate(measures):
             ly_stream.append("\n\t")
             line += 1
-            ly_stream.append("{")
+            ly_stream.append("\n\t{ %measure " + str(xx + 1) + " beginning")
 
             tuplet = 0
             pos = 0
@@ -291,21 +308,24 @@ class ScoreConverter(object):
                 if tuplet == 1:
                     temp_note += "\n\t }"
                     tuplet = 0
+
+                temp_note += ' %Symbtr #' + str(note[7])
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
-            ly_stream.append("} %measure " + str(xx + 1))
+            ly_stream.append("\n\t} %measure " + str(xx + 1) + " end point")
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
-    def run(self, fname):
-        measures, makam, usul, form, bpm, beats, beat_type, keysig = self.read_musicxml(fname)
-        ly_stream, mapping = self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
+    def run(self, filename):
+        measures, makam, usul, form, beats, beat_type, keysig = self.read_musicxml(filename)
+        ly_stream, mapping = self.lilypond_writer(filename.split("/")[-1][:-4], measures, makam,
+                                                  usul, form, beats, beat_type, keysig)
 
-        fname = fname.split(".")[0]
-        outfile = codecs.open(fname + ".ly", 'w')
+        filename = filename.split(".")[0]
+        outfile = codecs.open(filename + ".ly", 'w')
         outfile.write(''.join(ly_stream))
         outfile.close()
 
-        outfile = codecs.open(fname + ".json", 'w')
+        outfile = codecs.open(filename + ".json", 'w')
         json.dump(mapping, outfile)
         outfile.close()
