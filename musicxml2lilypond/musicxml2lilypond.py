@@ -28,7 +28,6 @@ class ScoreConverter(object):
 
     @staticmethod
     def read_musicxml(filename):
-        # koma definitions
         """
 
         :param filename:
@@ -295,7 +294,7 @@ class ScoreConverter(object):
                 # lyrics
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
-                        if note[-1][1].isupper():
+                        if note[-1][1].isupper() or note[-1][0].isdigit():
                             temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
                                          u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
                         else:
