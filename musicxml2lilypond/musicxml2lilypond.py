@@ -193,8 +193,12 @@ class ScoreConverter(object):
                            'slash-quarter-sharp': '+5',
                            'slash-sharp': '+8'}
 
-        sort_rule = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
-        sort_rule_notes = {0: 'F', 1: 'C', 2: 'G', 3: 'G', 4: 'A', 5: 'E', 6: 'B'}
+        # sorting rules of key signatures
+        sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
+        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'G', 4: 'A', 5: 'E', 6: 'B'}
+
+        sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1, 'B': 0}
+        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'G', 2: 'A', 1: 'E', 0: 'B'}
 
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
@@ -227,11 +231,21 @@ class ScoreConverter(object):
         line += 2
 
         accidentals_check = []
+        rule = []
+        for queue in keysig.keys():
+            if makam_accidents[keysig[queue]][0] is "+":
+                rule.append([sort_rule_sharps[queue], 's'])
+            else:
+                rule.append([sort_rule_flats[queue], 'f'])
 
-        rule = sorted([sort_rule[queue] for queue in keysig.keys()])
+        # sorting of key signatures
         temp_keysig = ""
-        for queue in rule:
-            key = sort_rule_notes[queue]
+        for queue in sorted(rule):
+            if queue[1] is "s":
+                key = sort_rule_notes_sharps[queue[0]]
+            else:
+                key = sort_rule_notes_flats[queue[0]]
+
             accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
             temp_keysig += "("
             temp_keysig += str(notes_western2lily[key.lower()]) + " . ," + \
@@ -296,7 +310,7 @@ class ScoreConverter(object):
                 # lyrics
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
-                        if note[-1][1].isupper() or note[-1][0].isdigit() or len(note[-1]) >= 5:
+                        if note[-1][1].isupper() or note[-1][0].isdigit():
                             temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
                                          u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
                         else:
