@@ -10,3 +10,4 @@ test*.py
 *.pdf
 *.qrc~
 *.ly
+*.json
