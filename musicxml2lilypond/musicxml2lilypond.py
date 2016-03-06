@@ -158,8 +158,9 @@ class ScoreConverter(object):
       tagline = \"\"
       title = \"{0}\"
       composer = \"{1}\"
-      meter = \"Usul {2}\"
-      piece = \"Makam: {3}\"""".format(title, composer, usul, makam) + "\n}" + """
+      meter = \"Usul: {2}\"
+      piece = \"Form: {3}\"
+      poet = \"Makam: {4}\"""".format(title, composer, usul, form, makam) + "\n}" + """
 {
   %\\override Score.SpacingSpanner.strict-note-spacing = ##t
   %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -294,7 +295,7 @@ class ScoreConverter(object):
                 # lyrics
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
-                        if note[-1][1].isupper() or note[-1][0].isdigit():
+                        if note[-1][1].isupper() or note[-1][0].isdigit() or len(note[-1]) >= 5:
                             temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
                                          u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
                         else:
