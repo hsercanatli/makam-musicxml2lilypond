@@ -142,6 +142,7 @@ class ScoreConverter(object):
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
         conn = sqlite3.connect(os.path.join(curr_path, "symbtr.db"))
+
         c = conn.cursor()
 
         # getting headers
@@ -172,7 +173,7 @@ class ScoreConverter(object):
                        "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
 
         # notes and accidentals dictionary lilypond
-        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "10"}
+        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "3"}
 
         notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
                                 'flat': "(- KUCUK)",
@@ -233,9 +234,9 @@ class ScoreConverter(object):
             key = sort_rule_notes[queue]
             accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
             temp_keysig += "("
-            temp_keysig += "( 0 . " + str(notes_western2lily[key.lower()]) + "). , " + \
+            temp_keysig += str(notes_western2lily[key.lower()]) + " . ," + \
                            str(notes_keyaccidentals[keysig[key]])
-            temp_keysig += ")"
+            temp_keysig += ") "
 
             ly_stream.append(temp_keysig)
             temp_keysig = ""
