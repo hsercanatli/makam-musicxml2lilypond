@@ -13,7 +13,6 @@ class CommentHandler(eT.XMLTreeBuilder):
         eT.XMLTreeBuilder.__init__(self)
         # assumes ElementTree 1.2.X
         self._parser.CommentHandler = self.handle_comment
-        self.mapping = {}
 
     def handle_comment(self, data):
         self._target.start("symbtrid", {})
@@ -25,8 +24,7 @@ class CommentHandler(eT.XMLTreeBuilder):
 
 class ScoreConverter(object):
     def __init__(self):
-        # octaves and accidentals dictionary
-        self.mapping = []
+        pass
 
     @staticmethod
     def read_musicxml(fname):
@@ -139,6 +137,8 @@ class ScoreConverter(object):
         return measures, makam, usul, form, bpm, beats, beat_type, keysig
 
     def ly_writer(self, measures, makam, usul, form, bpm, beats, beat_type, keysig):
+        mapping = []
+
         ly_stream = ["""
 \\include "makam.ly"
 {
@@ -169,6 +169,9 @@ class ScoreConverter(object):
                            'sharp': '+4',
                            'slash-quarter-sharp': '+5',
                            'slash-sharp': '+8'}
+
+        sort_rule = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
+        sort_rule_notes = {0: 'F', 1: 'C', 2: 'G', 3: 'G', 4: 'A', 5: 'E', 6: 'B'}
 
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
         # connecting database, trying to get information for beams in lilypond
@@ -206,9 +209,11 @@ class ScoreConverter(object):
         line += 2
 
         accidentals_check = []
-        temp_keysig = ""
 
-        for key in keysig:
+        rule = sorted([sort_rule[queue] for queue in keysig.keys()])
+        temp_keysig = ""
+        for queue in rule:
+            key = sort_rule_notes[queue]
             accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
             temp_keysig += "("
             temp_keysig += "( 0 . " + str(notes_western2lily[key.lower()]) + "). , " + \
@@ -268,7 +273,7 @@ class ScoreConverter(object):
                     temp_note += str(int(temp_dur))
 
                 if note[7]:
-                    self.mapping.append((note[7], pos + 4, line))
+                    mapping.append((note[7], pos + 4, line))
 
                 # lyrics
                 if note[-1] is not "":
@@ -290,11 +295,11 @@ class ScoreConverter(object):
                 ly_stream.append(temp_note)
             ly_stream.append("} %measure " + str(xx + 1))
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
-        return ly_stream
+        return ly_stream, mapping
 
     def run(self, fname):
         measures, makam, usul, form, bpm, beats, beat_type, keysig = self.read_musicxml(fname)
-        ly_stream = self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
+        ly_stream, mapping = self.ly_writer(measures, makam, usul, form, bpm, beats, beat_type, keysig)
 
         fname = fname.split(".")[0]
         outfile = codecs.open(fname + ".ly", 'w')
@@ -302,5 +307,5 @@ class ScoreConverter(object):
         outfile.close()
 
         outfile = codecs.open(fname + ".json", 'w')
-        json.dump(self.mapping, outfile)
+        json.dump(mapping, outfile)
         outfile.close()
