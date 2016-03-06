@@ -8,6 +8,7 @@ test*.py
 *.egg-info
 .DS_Store
 *.pdf
+!samplescores/*.pdf
 *.qrc~
 *.ly
 *.json
