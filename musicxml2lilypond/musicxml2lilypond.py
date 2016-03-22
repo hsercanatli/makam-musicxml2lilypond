@@ -69,6 +69,20 @@ class ScoreConverter(object):
             usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).encode('utf-8').strip()
         else:
             print "Makam and Usul information do not exist."
+            makam = u''.encode('utf-8').strip()
+            usul = u''.encode('utf-8').strip()
+            form = u''.encode('utf-8').strip()
+
+        if root.find('work/work-title').text:
+            work_title = u''.join(root.find('work/work-title').text).encode('utf-8').strip()
+
+        identification = [item.text for item in root.findall('identification/creator')]
+        if len(identification) == 2:
+            composer = u''.join(identification[0]).encode('utf-8').strip()
+            poem = u''.join(identification[1]).encode('utf-8').strip()
+        else:
+            composer = u''.join(identification[0]).encode('utf-8').strip()
+            poem = u''.encode('utf-8').strip()
 
         measures = []
         # reading the xml measure by measure
@@ -133,10 +147,11 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul, form, beats, beat_type, keysig
+        return measures, makam, usul, form, beats, beat_type, keysig, work_title, composer, poem
 
     @staticmethod
-    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type, keysig):
+    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type, keysig, render_metadata,
+                        work_title, composer, poem):
         mapping = []
 
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
@@ -146,26 +161,31 @@ class ScoreConverter(object):
         c = conn.cursor()
 
         # getting headers
-
-        c.execute('SELECT * FROM work WHERE SYMBTR="{0}"'.format(''.join(symbtr).encode('utf-8')))
-        metadata = c.fetchone()
-
-        title = ''.join(metadata[2]).encode('utf-8')
-        composer = ''.join(metadata[4]).encode('utf-8')
-
-        ly_stream = ["""
-\\include "makam.ly" """ + """
-\\header { """ + """
-      tagline = \"\"
-      title = \"{0}\"
-      composer = \"{1}\"
-      meter = \"Usul: {2}\"
-      piece = \"Form: {3}\"
-      poet = \"Makam: {4}\"""".format(title, composer, usul, form, makam) + "\n}" + """
-{
-  %\\override Score.SpacingSpanner.strict-note-spacing = ##t
-  %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
-             """]
+        if render_metadata:
+            ly_stream = ["""
+    \\include "makam.ly" """ + """
+    \\header { """ + """
+          tagline = \"\"
+          title = \"{0}\"
+          composer = \"{1}\"
+          meter = \"Usul: {2}\"
+          piece = \"Form: {3}\"
+          poet = \"Makam: {4}\"
+          arranger = \"Lyricist: {5}\"""".format(work_title, composer, usul, form, makam, poem) + "\n}" + """
+    {
+      %\\override Score.SpacingSpanner.strict-note-spacing = ##t
+      %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
+                 """]
+        else:
+            ly_stream = ["""
+    \\include "makam.ly" """ + """
+    \\header { """ + """
+          tagline = \"\"
+          """"\n\t\t}" + """
+    {
+      %\\override Score.SpacingSpanner.strict-note-spacing = ##t
+      %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
+                 """]
 
         octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
 
@@ -173,7 +193,7 @@ class ScoreConverter(object):
                        "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
 
         # notes and accidentals dictionary lilypond
-        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "7", "d": "8", "e": "9", "f": "3"}
+        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "0", "d": "1", "e": "2", "f": "3"}
 
         notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
                                 'flat': "(- KUCUK)",
@@ -195,10 +215,10 @@ class ScoreConverter(object):
 
         # sorting rules of key signatures
         sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
-        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'G', 4: 'A', 5: 'E', 6: 'B'}
+        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A', 5: 'E', 6: 'B'}
 
         sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1, 'B': 0}
-        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'G', 2: 'A', 1: 'E', 0: 'B'}
+        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A', 1: 'E', 0: 'B'}
 
         # Starting from 4 because of the lilypond header, defined in main function
         line = 6
@@ -245,7 +265,6 @@ class ScoreConverter(object):
                 key = sort_rule_notes_sharps[queue[0]]
             else:
                 key = sort_rule_notes_flats[queue[0]]
-
             accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
             temp_keysig += "("
             temp_keysig += str(notes_western2lily[key.lower()]) + " . ," + \
@@ -331,10 +350,11 @@ class ScoreConverter(object):
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
-    def run(self, filename):
-        measures, makam, usul, form, beats, beat_type, keysig = self.read_musicxml(filename)
+    def run(self, filename, render_metadata=False):
+        measures, makam, usul, form, beats, beat_type, keysig, work_title, composer, poem = self.read_musicxml(filename)
         ly_stream, mapping = self.lilypond_writer(filename.split("/")[-1][:-4], measures, makam,
-                                                  usul, form, beats, beat_type, keysig)
+                                                  usul, form, beats, beat_type, keysig, render_metadata, work_title,
+                                                  composer, poem)
 
         filename = filename.split(".")[0]
         outfile = codecs.open(filename + ".ly", 'w')
