@@ -73,9 +73,13 @@ class ScoreConverter(object):
             usul = u''.encode('utf-8').strip()
             form = u''.encode('utf-8').strip()
 
+        # work title
         if root.find('work/work-title').text:
             work_title = u''.join(root.find('work/work-title').text).encode('utf-8').strip()
+        else:
+            work_title = u''.encode('utf-8').strip()
 
+        # composer and lyricist
         identification = [item.text for item in root.findall('identification/creator')]
         if len(identification) == 2:
             composer = u''.join(identification[0]).encode('utf-8').strip()
