@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='musicxml2lilypond',
-      version='1.0',
+      version='0.9.0',
       author='Hasan Sercan Atli',
       author_email='hsercanatli AT gmail DOT com',
       license='agpl 3.0',
