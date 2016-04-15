@@ -1,6 +1,6 @@
 musicxml2lilypond
 ===========
-Python package that converts the a makam-musicxml score to [LilyPond](http://lilypond.org/)
+Python package that converts a makam score in MusicXml format to [LilyPond](http://lilypond.org/)
 
 Introduction
 ------------
