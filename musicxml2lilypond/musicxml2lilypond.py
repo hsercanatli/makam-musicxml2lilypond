@@ -28,10 +28,9 @@ class ScoreConverter(object):
         pass
 
     @staticmethod
-    def read_musicxml(filename):
+    def read_musicxml(xml_in):
         """
-
-        :param filename:
+        :param xml_in:
         :rtype: object
         """
         makam_accidents = {'quarter-flat': '-1',
@@ -45,8 +44,11 @@ class ScoreConverter(object):
 
         # setting the xml tree
         parser = CommentHandler()
-        tree = eT.parse(filename, parser)
-        root = tree.getroot()
+        try:  # document
+            tree = eT.parse(xml_in, parser)
+            root = tree.getroot()
+        except IOError:  # stirng input
+            root = eT.fromstring(xml_in, parser)
 
         # tempo
         bpm = float(root.find('part/measure/direction/sound').attrib['tempo'])
@@ -390,18 +392,16 @@ class ScoreConverter(object):
             xml_in.split("/")[-1][:-4], measures, makam, usul, form,
             beats, beat_type, keysig, render_metadata, work_title, composer,
             poem)
-
+        ly_stream = ''.join(ly_stream)
         # save to file
         if ly_out is not None:
             xml_in = xml_in.split(".")[0]
-            outfile = codecs.open(ly_out, 'w')
-            outfile.write(''.join(ly_stream))
-            outfile.close()
+            with codecs.open(ly_out, 'w') as outfile:
+                outfile.write(ly_stream)
 
         # save to json
         if map_out is not None:
-            outfile = codecs.open(xml_in + ".json", 'w')
-            json.dump(mapping, outfile)
-            outfile.close()
+            with codecs.open(xml_in + ".json", 'w') as outfile:
+                json.dump(mapping, outfile)
 
         return ly_stream, mapping
