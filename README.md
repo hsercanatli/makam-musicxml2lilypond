@@ -9,6 +9,28 @@ Introduction
 Usage
 =======
 
+```python
+from musicxml2lilypond.musicxml2lilypond import ScoreConverter
+
+# input
+xml_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.xml"
+
+# input MusicXML file
+xml_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.xml"
+
+# output lilypond file
+ly_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.ly"
+
+# output json file storing the mappings beteen ly and musicxml files.
+map_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.json"
+
+# instantiate
+converter = ScoreConverter()
+
+converter.run(xml_file, ly_out=ly_file, map_out=map_file,
+              render_metadata=False)
+```
+
 Installation
 ============
 

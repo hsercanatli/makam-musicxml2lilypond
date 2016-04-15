@@ -383,26 +383,25 @@ class ScoreConverter(object):
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
-    def run(self, filename, ly_out=None, mapping_out=None,
-            render_metadata=False):
+    def run(self, xml_in, ly_out=None, map_out=None, render_metadata=False):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
-         composer, poem) = self.read_musicxml(filename)
+         composer, poem) = self.read_musicxml(xml_in)
 
         ly_stream, mapping = self.lilypond_writer(
-            filename.split("/")[-1][:-4], measures, makam, usul, form,
+            xml_in.split("/")[-1][:-4], measures, makam, usul, form,
             beats, beat_type, keysig, render_metadata, work_title, composer,
             poem)
 
         # save to file
         if ly_out is not None:
-            filename = filename.split(".")[0]
+            xml_in = xml_in.split(".")[0]
             outfile = codecs.open(ly_out, 'w')
             outfile.write(''.join(ly_stream))
             outfile.close()
 
         # save to json
-        if mapping_out is not None:
-            outfile = codecs.open(filename + ".json", 'w')
+        if map_out is not None:
+            outfile = codecs.open(xml_in + ".json", 'w')
             json.dump(mapping, outfile)
             outfile.close()
 
