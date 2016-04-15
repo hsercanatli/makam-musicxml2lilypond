@@ -1,14 +1,14 @@
 musicxml2lilypond
 ===========
-Python package that converts the a makam-musicxml score to lilypond
+Python package that converts a makam score in MusicXml format to [LilyPond](http://lilypond.org/)
 
 Introduction
 ------------
-This repositry provides a simple and reliable conversion of a makam music score from MusicXML format to LilyPond format.
+This repository provides a simple and reliable conversion of a makam music score from MusicXML format to LilyPond format.
 
-You can obtain 2200 makam music scores in MusicXML format from [SymbTr](http://dunya.compmusic.upf.edu/makam/) collection. Alternatively you canuse the SymbTr-txt files in the collection and generate a MusicXML file with different options using the [MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) repository.
+You can obtain 2200 makam music scores in MusicXML format from [SymbTr](http://dunya.compmusic.upf.edu/makam/) collection. Alternatively, you can use the SymbTr-txt files in the collection and generate the MusicXML files with limited modifications using the [MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) package.
 
-The LilyPond format is useful not only it's music engraving capabilities but also the Lilypond softwares powerful svg conversion as the musical elements in the Lilypond and svg files are mapped to each other. This package is currently used in [Dunya-makam](http://dunya.compmusic.upf.edu/makam/) website in the SymbTr conversion "chain" from txt -> MusicXML -> LilyPond -> svg. The resultant svg files are displayed in the recording page synchronous to the audio playback.
+The LilyPond format and the LilyPond software itself are a powerful combination for music engraving, with vast use cases. Moreover, the software has a rather powerful LilyPond format to svg conversion capability. During conversion it encodes a precise mapping of the musical elements in the LilyPond file onto the generated vectors in the svg file. The scores in svg format created this way (SymbTr conversion "chain" from txt -> MusicXML -> LilyPond -> svg) are currently stored and displayed in the  ["Dunya-makam"](http://dunya.compmusic.upf.edu/makam/) website. The notes and the sections of the resultant svg score files are displayed in the recording page, synchronous to the audio playback.
 
 Usage
 ------
