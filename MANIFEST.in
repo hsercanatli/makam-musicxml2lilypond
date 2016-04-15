@@ -1,1 +1,1 @@
-recursive-include musicxml2lilypond/data makam_db
+recursive-include musicxml2lilypond/data *.db

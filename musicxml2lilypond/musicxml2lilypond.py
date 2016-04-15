@@ -33,14 +33,14 @@ class ScoreConverter(object):
         :param xml_in:
         :rtype: object
         """
-        makam_accidents = {'quarter-flat': '-1',
-                           'slash-flat': '-4',
-                           'flat': '-5',
-                           'double-slash-flat': '-8',
-                           'quarter-sharp': '+1',
-                           'sharp': '+4',
-                           'slash-quarter-sharp': '+5',
-                           'slash-sharp': '+8'}
+        makam_accidentals = {'quarter-flat': '-1',
+                             'slash-flat': '-4',
+                             'flat': '-5',
+                             'double-slash-flat': '-8',
+                             'quarter-sharp': '+1',
+                             'sharp': '+4',
+                             'slash-quarter-sharp': '+5',
+                             'slash-sharp': '+8'}
 
         # setting the xml tree
         parser = CommentHandler()
@@ -131,7 +131,7 @@ class ScoreConverter(object):
 
                 # accident inf
                 if note.find('accidental') is not None:
-                    acc = makam_accidents[note.find('accidental').text]
+                    acc = makam_accidentals[note.find('accidental').text]
                 else:
                     acc = 0
 
@@ -172,10 +172,11 @@ class ScoreConverter(object):
                         keysig, render_metadata, work_title, composer, poem):
         mapping = []
 
-        curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
-        # connecting database, trying to get information for beams in lilypond
-        conn = sqlite3.connect(os.path.join(curr_path, "symbtr.db"))
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "data", "symbtr.db")
 
+        # connecting database, trying to get information for beams in lilypond
+        conn = sqlite3.connect(os.path.join(db_path))
         c = conn.cursor()
 
         # getting headers
