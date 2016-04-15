@@ -4,7 +4,26 @@ Python package that converts the a makam-musicxml score to lilypond
 
 Introduction
 ------------
+This repositry provides a simple, yet representative conversion of a
+makam music score from MusicXML format to LilyPond format.
 
+You can obtain 2200 makam music scores in MusicXML format from [SymbTr]
+(http://dunya.compmusic.upf.edu/makam/) collection. Alternatively you can
+use the SymbTr-txt files in the collection and generate a MusicXML file with
+different options using the
+[MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) repository.
+
+The LilyPond format is useful not only it's music engraving capabilities
+but also the Lilypond softwares powerful svg conversion as the musical
+elements in the Lilypond and svg files are mapped to each other. This
+package is currently used in [Dunya-makam](http://dunya.compmusic.upf
+.edu/makam/) website in the SymbTr conversion "chain" from txt -> MusicXML
+-> LilyPond -> svg. The resultant svg files are displayed in the recording
+page synchronous to the audio playback.
+
+This package is in active development. The calls might change drastically
+until the first stable release. For this reason we suggest the users to
+stick to the released versions, for the most reliable performance.
 
 Usage
 =======

@@ -4,6 +4,7 @@ import json
 import xml.etree.ElementTree as eT
 import sqlite3
 import codecs
+import warnings
 
 __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
@@ -75,7 +76,7 @@ class ScoreConverter(object):
             usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).\
                 encode('utf-8').strip()
         else:
-            print "Makam and Usul information do not exist."
+            warnings.warn("Makam and Usul information do not exist.")
             makam = u''.encode('utf-8').strip()
             usul = u''.encode('utf-8').strip()
             form = u''.encode('utf-8').strip()
@@ -106,7 +107,6 @@ class ScoreConverter(object):
             for note_index, note in enumerate(measure.findall('note')):
 
                 # pitch and octave information of the current note
-
                 if note.find("symbtrid").text:  # symbtrid
                     extra = int(note.find("symbtrid").text)
 
@@ -166,9 +166,8 @@ class ScoreConverter(object):
                 work_title, composer, poem)
 
     @staticmethod
-    def lilypond_writer(symbtr, measures, makam, usul, form, beats,
-                        beat_type, keysig, render_metadata,
-                        work_title, composer, poem):
+    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type,
+                        keysig, render_metadata, work_title, composer, poem):
         mapping = []
 
         curr_path = os.path.dirname(os.path.abspath(__file__)) + "/data"
