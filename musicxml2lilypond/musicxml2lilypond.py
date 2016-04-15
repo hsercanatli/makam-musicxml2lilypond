@@ -162,8 +162,8 @@ class ScoreConverter(object):
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul, form, beats, beat_type, keysig, \
-               work_title, composer, poem
+        return (measures, makam, usul, form, beats, beat_type, keysig,
+                work_title, composer, poem)
 
     @staticmethod
     def lilypond_writer(symbtr, measures, makam, usul, form, beats,
@@ -189,7 +189,7 @@ class ScoreConverter(object):
           piece = \"Form: {3}\"
           poet = \"Makam: {4}\"
           arranger = \"Lyricist: {5}\"""".format(
-                work_title, composer, usul,form, makam, poem) + "\n}" + """
+                work_title, composer, usul, form, makam, poem) + "\n}" + """
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -236,8 +236,8 @@ class ScoreConverter(object):
         # sorting rules of key signatures
         sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5,
                             'B': 6}
-        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A', 5:
-            'E', 6: 'B'}
+        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A',
+                                  5: 'E', 6: 'B'}
 
         sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1,
                            'B': 0}
@@ -298,8 +298,8 @@ class ScoreConverter(object):
             accidentals_check.append(key + makam_accidents[keysig[key].
                                      replace("+", "")])
             temp_keysig += "("
-            temp_keysig += str(notes_western2lily[key.lower()]) + " . ," + \
-                           str(notes_keyaccidentals[keysig[key]])
+            temp_keysig += (str(notes_western2lily[key.lower()]) + " . ," +
+                            str(notes_keyaccidentals[keysig[key]]))
             temp_keysig += ") "
 
             ly_stream.append(temp_keysig)
