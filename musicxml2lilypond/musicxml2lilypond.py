@@ -58,15 +58,22 @@ class ScoreConverter(object):
 
         # getting key signatures
         keysig = {}  # keys: notes, values: type of note accident
-        for xx, key in enumerate(root.findall('part/measure/attributes/key/key-step')):
-            keysig[key.text] = root.findall('part/measure/attributes/key/key-accidental')[xx].text
+        for xx, key in enumerate(
+                root.findall('part/measure/attributes/key/key-step')):
+            keysig[key.text] = root.findall(
+                'part/measure/attributes/key/key-accidental')[xx].text
 
         # makam and usul information
-        if root.find('part/measure/direction/direction-type/words').text:  # if makam and usul exist
-            cultural_info = root.find('part/measure/direction/direction-type/words').text
-            makam = u''.join(cultural_info.split(",")[0].split(": ")[1]).encode('utf-8').strip()
-            form = u''.join(cultural_info.split(",")[1].split(": ")[1]).encode('utf-8').strip()
-            usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).encode('utf-8').strip()
+        if root.find('part/measure/direction/direction-type/words').text:
+            # entered if makam and usul exist
+            cultural_info = root.find(
+                'part/measure/direction/direction-type/words').text
+            makam = u''.join(cultural_info.split(",")[0].split(": ")[1]).\
+                encode('utf-8').strip()
+            form = u''.join(cultural_info.split(",")[1].split(": ")[1]).\
+                encode('utf-8').strip()
+            usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).\
+                encode('utf-8').strip()
         else:
             print "Makam and Usul information do not exist."
             makam = u''.encode('utf-8').strip()
@@ -75,12 +82,14 @@ class ScoreConverter(object):
 
         # work title
         if root.find('work/work-title').text:
-            work_title = u''.join(root.find('work/work-title').text).encode('utf-8').strip()
+            work_title = u''.join(root.find('work/work-title').text).\
+                encode('utf-8').strip()
         else:
             work_title = u''.encode('utf-8').strip()
 
         # composer and lyricist
-        identification = [item.text for item in root.findall('identification/creator')]
+        identification = [item.text for item in root.findall(
+            'identification/creator')]
         if len(identification) == 2:
             composer = u''.join(identification[0]).encode('utf-8').strip()
             poem = u''.join(identification[1]).encode('utf-8').strip()
@@ -144,17 +153,21 @@ class ScoreConverter(object):
 
                 if dur is not None:
                     # appending attributes to the temp note
-                    normal_dur = int(qnotelen * float(dur) / divisions) / qnotelen
+                    normal_dur = (int(qnotelen * float(dur) / divisions) /
+                                  qnotelen)
 
-                temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur, extra, lyric]
+                temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur,
+                             extra, lyric]
                 temp_measure.append(temp_note)
 
             # adding temp measure to the measure
             measures.append(temp_measure)
-        return measures, makam, usul, form, beats, beat_type, keysig, work_title, composer, poem
+        return measures, makam, usul, form, beats, beat_type, keysig, \
+               work_title, composer, poem
 
     @staticmethod
-    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type, keysig, render_metadata,
+    def lilypond_writer(symbtr, measures, makam, usul, form, beats,
+                        beat_type, keysig, render_metadata,
                         work_title, composer, poem):
         mapping = []
 
@@ -175,7 +188,8 @@ class ScoreConverter(object):
           meter = \"Usul: {2}\"
           piece = \"Form: {3}\"
           poet = \"Makam: {4}\"
-          arranger = \"Lyricist: {5}\"""".format(work_title, composer, usul, form, makam, poem) + "\n}" + """
+          arranger = \"Lyricist: {5}\"""".format(
+                work_title, composer, usul,form, makam, poem) + "\n}" + """
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -191,13 +205,15 @@ class ScoreConverter(object):
       %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
                  """]
 
-        octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'", "7": "\'\'\'\'", "r": ""}
+        octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'",
+                   "7": "\'\'\'\'", "r": ""}
 
         accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
                        "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
 
         # notes and accidentals dictionary lilypond
-        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "0", "d": "1", "e": "2", "f": "3"}
+        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "0",
+                              "d": "1", "e": "2", "f": "3"}
 
         notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
                                 'flat': "(- KUCUK)",
@@ -218,13 +234,17 @@ class ScoreConverter(object):
                            'slash-sharp': '+8'}
 
         # sorting rules of key signatures
-        sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5, 'B': 6}
-        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A', 5: 'E', 6: 'B'}
+        sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5,
+                            'B': 6}
+        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A', 5:
+            'E', 6: 'B'}
 
-        sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1, 'B': 0}
-        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A', 1: 'E', 0: 'B'}
+        sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1,
+                           'B': 0}
+        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A',
+                                 1: 'E', 0: 'B'}
 
-        # Starting from 4 because of the lilypond header, defined in main function
+        # Starting from 4 because of the lilypond header, defined in main func
         line = 6
         # getting the components for the given usul
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
@@ -234,15 +254,20 @@ class ScoreConverter(object):
         if data is not None:
             if data[-1] is not None:
                 strokes = data[-1].replace("+", " ")
-                ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
+                tmp_str = '''\n\t\\set Staff.beatStructure = #\'({0})\n'''\
+                    .format(strokes)
+                ly_stream.append(tmp_str)
                 line += 2
         if data is None:
-            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(usul.lower()))
+            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(
+                usul.lower()))
             new_data = c.fetchone()
             if new_data is not None:
                 if data[-1] is not None:
                     strokes = new_data[-1].replace("+", " ")
-                    ly_stream.append('''\n\t\\set Staff.beatStructure = #\'({0})\n'''.format(strokes))
+                    tmp_str = '''\n\t\\set Staff.beatStructure = #\'({0})\n'''\
+                        .format(strokes)
+                    ly_stream.append(tmp_str)
                     line += 2
 
         ly_stream.append("\n\t\\time")
@@ -251,7 +276,8 @@ class ScoreConverter(object):
         # time signature
         ly_stream.append(beats + "/" + beat_type)
 
-        ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`(")
+        ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`("
+                         )
         line += 2
 
         accidentals_check = []
@@ -269,7 +295,8 @@ class ScoreConverter(object):
                 key = sort_rule_notes_sharps[queue[0]]
             else:
                 key = sort_rule_notes_flats[queue[0]]
-            accidentals_check.append(key + makam_accidents[keysig[key].replace("+", "")])
+            accidentals_check.append(key + makam_accidents[keysig[key].
+                                     replace("+", "")])
             temp_keysig += "("
             temp_keysig += str(notes_western2lily[key.lower()]) + " . ," + \
                            str(notes_keyaccidentals[keysig[key]])
@@ -299,7 +326,8 @@ class ScoreConverter(object):
                 # dotted
                 if note[3] == 1:  # dot flag
                     temp_note += str(note[0])  # step
-                    temp_note += accidentals[str(note[2]).replace('+', '')]  # accidental
+                    # accidental
+                    temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 3 / 2
@@ -312,7 +340,8 @@ class ScoreConverter(object):
                         tuplet = 4
                         temp_note += "\\tuplet 3/2 {\n\t"
                     temp_note += str(note[0])  # step
-                    temp_note += accidentals[str(note[2]).replace('+', '')]  # accidental
+                    # accidental
+                    temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]  # octave
 
                     temp_dur = temp_dur * 2 / 3
@@ -354,17 +383,27 @@ class ScoreConverter(object):
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
-    def run(self, filename, render_metadata=False):
-        measures, makam, usul, form, beats, beat_type, keysig, work_title, composer, poem = self.read_musicxml(filename)
-        ly_stream, mapping = self.lilypond_writer(filename.split("/")[-1][:-4], measures, makam,
-                                                  usul, form, beats, beat_type, keysig, render_metadata, work_title,
-                                                  composer, poem)
+    def run(self, filename, ly_out=None, mapping_out=None,
+            render_metadata=False):
+        (measures, makam, usul, form, beats, beat_type, keysig, work_title,
+         composer, poem) = self.read_musicxml(filename)
 
-        filename = filename.split(".")[0]
-        outfile = codecs.open(filename + ".ly", 'w')
-        outfile.write(''.join(ly_stream))
-        outfile.close()
+        ly_stream, mapping = self.lilypond_writer(
+            filename.split("/")[-1][:-4], measures, makam, usul, form,
+            beats, beat_type, keysig, render_metadata, work_title, composer,
+            poem)
 
-        outfile = codecs.open(filename + ".json", 'w')
-        json.dump(mapping, outfile)
-        outfile.close()
+        # save to file
+        if ly_out is not None:
+            filename = filename.split(".")[0]
+            outfile = codecs.open(ly_out, 'w')
+            outfile.write(''.join(ly_stream))
+            outfile.close()
+
+        # save to json
+        if mapping_out is not None:
+            outfile = codecs.open(filename + ".json", 'w')
+            json.dump(mapping, outfile)
+            outfile.close()
+
+        return ly_stream, mapping
