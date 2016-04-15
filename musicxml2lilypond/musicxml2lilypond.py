@@ -1,10 +1,11 @@
 # coding=utf-8
+from __future__ import unicode_literals
 import os
 import json
 import xml.etree.ElementTree as eT
 import sqlite3
-import codecs
 import warnings
+
 
 __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
@@ -72,34 +73,33 @@ class ScoreConverter(object):
             # entered if makam and usul exist
             cultural_info = root.find(
                 'part/measure/direction/direction-type/words').text
-            makam = u''.join(cultural_info.split(",")[0].split(": ")[1]).\
-                encode('utf-8').strip()
-            form = u''.join(cultural_info.split(",")[1].split(": ")[1]).\
-                encode('utf-8').strip()
-            usul = u''.join(cultural_info.split(",")[2].split(": ")[1]).\
-                encode('utf-8').strip()
+            makam = ''.join(cultural_info.split(",")[0].split(": ")[1]).\
+                strip()
+            form = ''.join(cultural_info.split(",")[1].split(": ")[1]).\
+                strip()
+            usul = ''.join(cultural_info.split(",")[2].split(": ")[1]).\
+                strip()
         else:
             warnings.warn("Makam and Usul information do not exist.")
-            makam = u''.encode('utf-8').strip()
-            usul = u''.encode('utf-8').strip()
-            form = u''.encode('utf-8').strip()
+            makam = ''.strip()
+            usul = ''.strip()
+            form = ''.strip()
 
         # work title
         if root.find('work/work-title').text:
-            work_title = u''.join(root.find('work/work-title').text).\
-                encode('utf-8').strip()
+            work_title = ''.join(root.find('work/work-title').text).strip()
         else:
-            work_title = u''.encode('utf-8').strip()
+            work_title = ''.strip()
 
         # composer and lyricist
         identification = [item.text for item in root.findall(
             'identification/creator')]
         if len(identification) == 2:
-            composer = u''.join(identification[0]).encode('utf-8').strip()
-            poem = u''.join(identification[1]).encode('utf-8').strip()
+            composer = ''.join(identification[0]).strip()
+            poet = ''.join(identification[1]).strip()
         else:
-            composer = u''.join(identification[0]).encode('utf-8').strip()
-            poem = u''.encode('utf-8').strip()
+            composer = ''.join(identification[0]).strip()
+            poet = ''.strip()
 
         measures = []
         # reading the xml measure by measure
@@ -166,11 +166,11 @@ class ScoreConverter(object):
             # adding temp measure to the measure
             measures.append(temp_measure)
         return (measures, makam, usul, form, beats, beat_type, keysig,
-                work_title, composer, poem)
+                work_title, composer, poet)
 
     @staticmethod
     def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type,
-                        keysig, render_metadata, work_title, composer, poem):
+                        keysig, render_metadata, work_title, composer, poet):
         mapping = []
 
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -182,17 +182,19 @@ class ScoreConverter(object):
 
         # getting headers
         if render_metadata:
+            poet_str = 'poet = \"Lyricist: {0:s}\"'.\
+                format(poet) if poet else ''
+
             ly_stream = ["""
     \\include "makam.ly" """ + """
     \\header { """ + """
           tagline = \"\"
           title = \"{0}\"
           composer = \"{1}\"
-          meter = \"Usul: {2}\"
-          piece = \"Form: {3}\"
-          poet = \"Makam: {4}\"
-          arranger = \"Lyricist: {5}\"""".format(
-                work_title, composer, usul, form, makam, poem) + "\n}" + """
+          metre = \"Usul: {2}\"
+          piece = \"Makam: {4}, Form: {3}\"""".format(
+                work_title, composer, usul, form, makam) + poet_str + "\n}" +
+                         """
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -301,8 +303,8 @@ class ScoreConverter(object):
             accidentals_check.append(key + makam_accidents[keysig[key].
                                      replace("+", "")])
             temp_keysig += "("
-            temp_keysig += (str(notes_western2lily[key.lower()]) + " . ," +
-                            str(notes_keyaccidentals[keysig[key]]))
+            temp_keysig += (notes_western2lily[key.lower()] + " . ," +
+                            notes_keyaccidentals[keysig[key]])
             temp_keysig += ") "
 
             ly_stream.append(temp_keysig)
@@ -313,7 +315,7 @@ class ScoreConverter(object):
         for xx, measure in enumerate(measures):
             ly_stream.append("\n\t")
             line += 1
-            ly_stream.append("\n\t{ %measure " + str(xx + 1) + " beginning")
+            ly_stream.append("\n\t{{ % measure {0:d} beginning".format(xx + 1))
 
             tuplet = 0
             pos = 0
@@ -367,19 +369,19 @@ class ScoreConverter(object):
                     if len(note[-1]) > 1:
                         if note[-1][1].isupper() or note[-1][0].isdigit():
                             temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
-                                         u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                                         ''.join(note[-1]).strip() + '''\"}}'''
                         else:
                             temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
-                                         u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                                         ''.join(note[-1]).strip() + '''\"}}'''
                     else:
                         temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
-                                     u''.join(note[-1]).encode('utf-8').strip() + '''\"}}'''
+                                     ''.join(note[-1]).strip() + '''\"}}'''
 
                 if tuplet == 1:
                     temp_note += "\n\t }"
                     tuplet = 0
 
-                temp_note += ' %SymbTr-txt #' + str(note[7])
+                temp_note += ' % SymbTr-txt #' + str(note[7])
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
             ly_stream.append("\n\t} %measure " + str(xx + 1) + " end point")
@@ -394,16 +396,17 @@ class ScoreConverter(object):
             xml_in.split("/")[-1][:-4], measures, makam, usul, form,
             beats, beat_type, keysig, render_metadata, work_title, composer,
             poem)
-        ly_stream = ''.join(ly_stream)
+
+        ly_stream = u''.join(ly_stream)
         # save to file
         if ly_out is not None:
             xml_in = xml_in.split(".")[0]
-            with codecs.open(ly_out, 'w') as outfile:
-                outfile.write(ly_stream)
+            with open(ly_out, 'w') as outfile:
+                outfile.write(ly_stream.encode('utf-8'))
 
         # save to json
         if map_out is not None:
-            with codecs.open(xml_in + ".json", 'w') as outfile:
+            with open(xml_in + ".json", 'w') as outfile:
                 json.dump(mapping, outfile)
 
         return ly_stream, mapping
