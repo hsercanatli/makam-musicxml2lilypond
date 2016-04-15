@@ -1,10 +1,10 @@
 musicxml2lilypond
 ===========
-Python package that converts the a makam-musicxml score to lilypond
+Python package that converts the a makam-musicxml score to [LilyPond](http://lilypond.org/)
 
 Introduction
 ------------
-This repositry provides a simple and reliable conversion of a makam music score from MusicXML format to LilyPond format.
+This repository provides a simple and reliable conversion of a makam music score from MusicXML format to LilyPond format.
 
 You can obtain 2200 makam music scores in MusicXML format from [SymbTr](http://dunya.compmusic.upf.edu/makam/) collection. Alternatively, you can use the SymbTr-txt files in the collection and generate the MusicXML files with limited modifications using the [MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) package.
 
