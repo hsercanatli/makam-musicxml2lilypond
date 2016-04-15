@@ -174,7 +174,7 @@ class ScoreConverter(object):
         mapping = []
 
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                 "data", "symbtr.db")
+                               "data", "symbtr.db")
 
         # connecting database, trying to get information for beams in lilypond
         conn = sqlite3.connect(os.path.join(db_path))
