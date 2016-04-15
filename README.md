@@ -26,7 +26,7 @@ until the first stable release. For this reason we suggest the users to
 stick to the released versions, for the most reliable performance.
 
 Usage
-=======
+------
 
 ```python
 from musicxml2lilypond.musicxml2lilypond import ScoreConverter
@@ -47,7 +47,7 @@ ly_stream, mapping = converter.run(xml_file, ly_out=ly_file, map_out=map_file,
 ```
 
 Installation
-============
+-------------
 
 If you want to install musicxml2lilypond, it is recommended to install the package and its dependencies into a virtualenv. In the terminal, do the following:
 
