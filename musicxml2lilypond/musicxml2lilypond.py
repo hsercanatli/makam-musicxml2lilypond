@@ -55,7 +55,7 @@ class ScoreConverter(object):
         # tempo
         bpm = float(root.find('part/measure/direction/sound').attrib['tempo'])
         divisions = float(root.find('part/measure/attributes/divisions').text)
-        qnotelen = 60000 / bpm
+        qnotelen = 60000.0 / bpm
 
         # getting beats and beat type
         beat_type = root.find('part/measure/attributes/time/beat-type').text
@@ -333,10 +333,14 @@ class ScoreConverter(object):
                 line += 1
                 temp_dur = 0
                 if note[6] is None:  # gracenote
-                    # TODO: We don't show the grace notes, for now
-                    pass
+                    # for now we display it as a 8th \grace
+                    # TODO: Introduce other gracenotes such as \acciaccatura
+                    # with the proper symbolic "duration"
+                    temp_note += "\\grace "
+                    note[6] = 0.5  # reminder: 4th note is 1
+                    temp_dur = 4.0 / note[6]  # normal duration
                 else:
-                    temp_dur = 4 / note[6]  # normal duration
+                    temp_dur = 4.0 / note[6]  # normal duration
 
                 # dotted
                 if note[3] == 1:  # dot flag
@@ -345,11 +349,9 @@ class ScoreConverter(object):
                     temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]  # octave
 
-                    temp_dur = temp_dur * 3 / 2
+                    temp_dur = temp_dur * 3.0 / 2
                     temp_note += str(int(temp_dur))
                     temp_note += "."
-
-                # tuplet
                 elif note[4] == 1:  # tuplet flag
                     if tuplet == 0:
                         tuplet = 4
@@ -359,18 +361,15 @@ class ScoreConverter(object):
                     temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]  # octave
 
-                    temp_dur = temp_dur * 2 / 3
+                    temp_dur = temp_dur * 2.0 / 3
                     temp_note += str(int(temp_dur))
 
                     tuplet -= 1
-
-                # nor
-                else:
+                else: # nor
                     temp_note += str(note[0])
                     temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]
                     temp_note += str(int(temp_dur))
-
                 if note[7]:
                     mapping.append((note[7], pos + 4, line))
 
