@@ -11,7 +11,8 @@ __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
 class CommentHandler(eT.XMLTreeBuilder):
     def __init__(self):
-        eT.XMLTreeBuilder.__init__(self)
+        super(CommentHandler, self).__init__()
+
         # assumes ElementTree 1.2.X
         self._parser.CommentHandler = self.handle_comment
 

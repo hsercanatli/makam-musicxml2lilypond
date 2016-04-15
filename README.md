@@ -47,10 +47,6 @@ install the repository like this instead:
 
     pip install -e .
 
-Now you can install the rest of the dependencies:
-
-    pip install -r requirements
-
 Authors
 -------
 Hasan Sercan Atlı	hsercanatli AT gmail DOT com  
