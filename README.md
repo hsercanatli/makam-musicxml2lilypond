@@ -4,26 +4,11 @@ Python package that converts the a makam-musicxml score to lilypond
 
 Introduction
 ------------
-This repositry provides a simple and reliable conversion of a
-makam music score from MusicXML format to LilyPond format.
+This repositry provides a simple and reliable conversion of a makam music score from MusicXML format to LilyPond format.
 
-You can obtain 2200 makam music scores in MusicXML format from [SymbTr]
-(http://dunya.compmusic.upf.edu/makam/) collection. Alternatively you can
-use the SymbTr-txt files in the collection and generate a MusicXML file with
-different options using the
-[MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) repository.
+You can obtain 2200 makam music scores in MusicXML format from [SymbTr](http://dunya.compmusic.upf.edu/makam/) collection. Alternatively you canuse the SymbTr-txt files in the collection and generate a MusicXML file with different options using the [MusicXMLConverter](https://github.com/burakuyar/MusicXMLConverter) repository.
 
-The LilyPond format is useful not only it's music engraving capabilities
-but also the Lilypond softwares powerful svg conversion as the musical
-elements in the Lilypond and svg files are mapped to each other. This
-package is currently used in [Dunya-makam](http://dunya.compmusic.upf
-.edu/makam/) website in the SymbTr conversion "chain" from txt -> MusicXML
--> LilyPond -> svg. The resultant svg files are displayed in the recording
-page synchronous to the audio playback.
-
-This package is in active development. The calls might change drastically
-until the first stable release. For this reason we suggest the users to
-stick to the released versions, for the most reliable performance.
+The LilyPond format is useful not only it's music engraving capabilities but also the Lilypond softwares powerful svg conversion as the musical elements in the Lilypond and svg files are mapped to each other. This package is currently used in [Dunya-makam](http://dunya.compmusic.upf.edu/makam/) website in the SymbTr conversion "chain" from txt -> MusicXML -> LilyPond -> svg. The resultant svg files are displayed in the recording page synchronous to the audio playback.
 
 Usage
 ------
@@ -48,6 +33,8 @@ ly_stream, mapping = converter.run(xml_file, ly_out=ly_file, map_out=map_file,
 
 Installation
 -------------
+
+**Note:** This package is in active development. The capabilities and calls might change significantly until the first stable release. For this reason we suggest the users to stick to the released versions, for the most reliable performance.
 
 If you want to install musicxml2lilypond, it is recommended to install the package and its dependencies into a virtualenv. In the terminal, do the following:
 
