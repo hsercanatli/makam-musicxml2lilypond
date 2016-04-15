@@ -1,2 +1,2 @@
-#### musicxml2lilypond v1.0
+#### musicxml2lilypond v0.9.0
  - First public release
