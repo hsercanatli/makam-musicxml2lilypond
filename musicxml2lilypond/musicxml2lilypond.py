@@ -379,7 +379,7 @@ class ScoreConverter(object):
                     temp_note += "\n\t }"
                     tuplet = 0
 
-                temp_note += ' %Symbtr #' + str(note[7])
+                temp_note += ' %SymbTr-txt #' + str(note[7])
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
             ly_stream.append("\n\t} %measure " + str(xx + 1) + " end point")
