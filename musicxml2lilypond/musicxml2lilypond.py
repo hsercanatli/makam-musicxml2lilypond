@@ -104,33 +104,39 @@ class ScoreConverter(object):
         measures = []
         # reading the xml measure by measure
         for measure_index, measure in enumerate(root.findall('part/measure')):
-
             temp_measure = []
             # all notes in the current measure
             for note_index, note in enumerate(measure.findall('note')):
-
                 # pitch and octave information of the current note
+                extra = None
                 if note.find("symbtrid").text:  # symbtrid
                     extra = int(note.find("symbtrid").text)
 
                 # pitch and octave information of the current note
+                octave = None
+                rest = None
+                step = None
                 if note.find('pitch') is not None:  # if pitch
                     if note.find('pitch/step').text:  # pitch step
                         step = note.find('pitch/step').text.lower()
                     if note.find('pitch/octave').text:  # pitch octave
                         octave = note.find('pitch/octave').text
                     rest = 0
-
                 elif note.find('rest') is not None:  # if rest
                     rest = 1
                     step = 'r'
                     octave = 'r'
+                else:
+                    raise ValueError("The element should have been a note or "
+                                     "rest")
 
-                dur = None  # duration
+                # duration
                 if note.find('duration') is not None:
                     dur = note.find('duration').text
+                else:
+                    dur = None  # grace note
 
-                # accident inf
+                    # accident inf
                 if note.find('accidental') is not None:
                     acc = makam_accidentals[note.find('accidental').text]
                 else:
@@ -158,6 +164,8 @@ class ScoreConverter(object):
                     # appending attributes to the temp note
                     normal_dur = (int(qnotelen * float(dur) / divisions) /
                                   qnotelen)
+                else:
+                    normal_dur = None
 
                 temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur,
                              extra, lyric]
@@ -324,8 +332,10 @@ class ScoreConverter(object):
                 temp_note = "\n\t"
                 line += 1
                 temp_dur = 0
-                # TODO: We don't show the grace notes, for now
-                if note[6] is not None:
+                if note[6] is None:  # gracenote
+                    # TODO: We don't show the grace notes, for now
+                    pass
+                else:
                     temp_dur = 4 / note[6]  # normal duration
 
                 # dotted
@@ -368,14 +378,20 @@ class ScoreConverter(object):
                 if note[-1] is not "":
                     if len(note[-1]) > 1:
                         if note[-1][1].isupper() or note[-1][0].isdigit():
-                            temp_note += '''^\\markup { \\left-align {\\bold \\translate #'(1 . 0) \"''' + \
-                                         ''.join(note[-1]).strip() + '''\"}}'''
+                            temp_note += (
+                                '''^\\markup { \\left-align ''' +
+                                '''{\\bold \\translate #'(1 . 0) \"''' +
+                                ''.join(note[-1]).strip() + '''\"}}''')
                         else:
-                            temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
-                                         ''.join(note[-1]).strip() + '''\"}}'''
+                            temp_note += (
+                                '''_\\markup { \\center-align {\\smaller ''' +
+                                '''\\translate #'(0 . -2.5) \"''' +
+                                ''.join(note[-1]).strip() + '''\"}}''')
                     else:
-                        temp_note += '''_\\markup { \\center-align {\\smaller \\translate #'(0 . -2.5) \"''' + \
-                                     ''.join(note[-1]).strip() + '''\"}}'''
+                        temp_note += (
+                            '''_\\markup { \\center-align {\\smaller ''' +
+                            '''\\translate #'(0 . -2.5) \"''' +
+                            ''.join(note[-1]).strip() + '''\"}}''')
 
                 if tuplet == 1:
                     temp_note += "\n\t }"
@@ -384,6 +400,7 @@ class ScoreConverter(object):
                 temp_note += ' % SymbTr-txt #' + str(note[7])
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
+
             ly_stream.append("\n\t} %measure " + str(xx + 1) + " end point")
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
