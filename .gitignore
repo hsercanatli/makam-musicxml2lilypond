@@ -10,5 +10,5 @@ test*.py
 *.pdf
 !samplescores/*.pdf
 *.qrc~
-*.ly
-*.json
+samplescores/*.ly
+samplescores/*.json

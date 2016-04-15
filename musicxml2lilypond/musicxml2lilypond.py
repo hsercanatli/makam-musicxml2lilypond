@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 import os
 import json
 import xml.etree.ElementTree as eT
@@ -114,7 +114,6 @@ class ScoreConverter(object):
 
                 # pitch and octave information of the current note
                 octave = None
-                rest = None
                 step = None
                 if note.find('pitch') is not None:  # if pitch
                     if note.find('pitch/step').text:  # pitch step
@@ -331,7 +330,6 @@ class ScoreConverter(object):
             for note in measure:
                 temp_note = "\n\t"
                 line += 1
-                temp_dur = 0
                 if note[6] is None:  # gracenote
                     # for now we display it as a 8th \grace
                     # TODO: Introduce other gracenotes such as \acciaccatura
@@ -365,7 +363,7 @@ class ScoreConverter(object):
                     temp_note += str(int(temp_dur))
 
                     tuplet -= 1
-                else: # nor
+                else:  # nor
                     temp_note += str(note[0])
                     temp_note += accidentals[str(note[2]).replace('+', '')]
                     temp_note += octaves[str(note[1])]
