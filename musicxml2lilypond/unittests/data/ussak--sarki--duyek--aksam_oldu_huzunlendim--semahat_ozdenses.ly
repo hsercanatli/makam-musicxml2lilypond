@@ -4,8 +4,8 @@
           tagline = ""
           title = "Akşam Oldu Hüzünlendim..."
           composer = "Semahat Özdenses"
-          metre = "Usul: Düyek"
-          piece = "Makam: Uşşak, Form: Şarkı"poet = "Lyricist: Ahmet Cengizoğlu"
+          piece = "Makam: Şarkı, Form: Uşşak, Usul: Düyek"
+          poet = "Lyricist: Ahmet Cengizoğlu"
 }
     {
       %\override Score.SpacingSpanner.strict-note-spacing = ##t

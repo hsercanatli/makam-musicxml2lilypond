@@ -19,6 +19,7 @@ def _converter(symbtr_name):
     ly_stream, mapping = converter.convert(
         xml_file, ly_out=None, mapping_out=None, render_metadata=True)
 
+
     assert True
 
 

@@ -24,7 +24,8 @@ class ScoreConverter(object):
 
         # getting headers
         if render_metadata:
-            poet_str = 'poet = \"Lyricist: {0:s}\"'.\
+            poet_str = """
+          poet = \"Lyricist: {0:s}\"""".\
                 format(lyricist) if lyricist else ''
 
             ly_stream = ["""
@@ -34,8 +35,9 @@ class ScoreConverter(object):
           title = \"{0}\"
           composer = \"{1}\"
           piece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
-                work_title, composer, form, makam, usul) + poet_str + "\n}" +
-                         """
+                work_title, composer, form, makam, usul) + poet_str
+                         + """
+    }
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -243,12 +245,11 @@ class ScoreConverter(object):
         ly_stream = u''.join(ly_stream)
         # save to file
         if ly_out is not None:
-            xml_in = xml_in.split(".")[0]
             with open(ly_out, 'w') as outfile:
                 outfile.write(ly_stream.encode('utf-8'))
 
         # save to json
         if mapping_out is not None:
-            json.dump(mapping, open(xml_in + ".json", 'w'))
+            json.dump(mapping, open(mapping_out, 'w'))
 
         return ly_stream, mapping
