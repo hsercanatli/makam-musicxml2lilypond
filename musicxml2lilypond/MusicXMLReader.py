@@ -66,20 +66,19 @@ class MusicXMLReader(object):
     @staticmethod
     def _get_makam_form_usul(root):
         if root.find('part/measure/direction/direction-type/words').text:
-            # entered if makam and usul exist
-            cultural_info = root.find(
-                'part/measure/direction/direction-type/words').text
-            makam = ''.join(cultural_info.split(",")[0].split(": ")[1]). \
-                strip()
-            form = ''.join(cultural_info.split(",")[1].split(": ")[1]). \
-                strip()
-            usul = ''.join(cultural_info.split(",")[2].split(": ")[1]). \
-                strip()
+            # the information is stored in the form below:
+            # "Makam: Pesendîde, Form: Sazsemâîsi, Usul: Aksaksemâî "
+            cultural_info_splitted = root.find(
+                'part/measure/direction/direction-type/words').text.split(",")
+
+            attributes = []
+            for info in cultural_info_splitted:
+                attributes.append(''.join(info.split(": ")[1]).strip())
+
+            makam, form, usul = attributes
         else:
-            warnings.warn("Makam and Usul information do not exist.")
-            makam = ''.strip()
-            usul = ''.strip()
-            form = ''.strip()
+            warnings.warn("Makam, Form and Usul information do not exist.")
+            makam = form = usul = ''
 
         return makam, form, usul
 
