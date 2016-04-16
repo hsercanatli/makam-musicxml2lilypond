@@ -132,7 +132,7 @@ class MusicXMLReader(object):
                                                  quarter_note_len)
 
                 # accident inf
-                acc = cls._chk_accidental(note)
+                acc = cls._get_accidental(note)
 
                 # dotted or not
                 dot = cls._chk_dotted(note)
@@ -153,8 +153,8 @@ class MusicXMLReader(object):
             measures.append(temp_measure)
         return measures
 
-    @classmethod
-    def _get_pitchstep_octave(cls, note, rest):
+    @staticmethod
+    def _get_pitchstep_octave(note, rest):
         if rest:
             pitch_step = 'r'
             octave = 'r'
@@ -176,10 +176,7 @@ class MusicXMLReader(object):
 
     @staticmethod
     def _chk_rest(note):
-        if note.find('rest') is None:
-            return 0
-        else:
-            return 1
+        return note.find('rest') is not None
 
     @staticmethod
     def _get_normal_dur(note, divisions, quarter_note_len):
@@ -191,7 +188,7 @@ class MusicXMLReader(object):
                     quarter_note_len)
 
     @classmethod
-    def _chk_accidental(cls, note):
+    def _get_accidental(cls, note):
         if note.find('accidental') is not None:
             return cls.makam_accidentals[note.find('accidental').text]
         else:
@@ -199,17 +196,11 @@ class MusicXMLReader(object):
 
     @staticmethod
     def _chk_dotted(note):
-        if note.find('dot') is not None:
-            return 1
-        else:
-            return 0
+        return note.find('dot') is not None
 
     @staticmethod
     def _chk_tuplet(note):
-        if note.find('time-modification') is not None:
-            return 1
-        else:
-            return 0
+        return note.find('time-modification') is not None
 
     @staticmethod
     def _get_lyrics(note):
