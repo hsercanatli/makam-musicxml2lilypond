@@ -10,8 +10,9 @@ __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
 class ScoreConverter(object):
     @staticmethod
-    def lilypond_writer(measures, makam, usul, form, beats, beat_type,
-                        keysig, render_metadata, work_title, composer, poet):
+    def _write_lilypond(measures, makam, usul, form, beats, beat_type,
+                        keysig, render_metadata, work_title, composer,
+                        lyricist):
         mapping = []
 
         db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -24,7 +25,7 @@ class ScoreConverter(object):
         # getting headers
         if render_metadata:
             poet_str = 'poet = \"Lyricist: {0:s}\"'.\
-                format(poet) if poet else ''
+                format(lyricist) if lyricist else ''
 
             ly_stream = ["""
     \\include "makam.ly" """ + """
@@ -32,9 +33,8 @@ class ScoreConverter(object):
           tagline = \"\"
           title = \"{0}\"
           composer = \"{1}\"
-          metre = \"Usul: {2}\"
-          piece = \"Makam: {4}, Form: {3}\"""".format(
-                work_title, composer, usul, form, makam) + poet_str + "\n}" +
+          piece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
+                work_title, composer, form, makam, usul) + poet_str + "\n}" +
                          """
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
@@ -92,9 +92,14 @@ class ScoreConverter(object):
 
         # Starting from 4 because of the lilypond header, defined in main func
         line = 6
+
         # getting the components for the given usul
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
         data = c.fetchone()
+        if data is None:
+            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(
+                usul.lower()))
+            data = c.fetchone()
 
         # if beam information is exist
         if data is not None:
@@ -104,17 +109,6 @@ class ScoreConverter(object):
                     .format(strokes)
                 ly_stream.append(tmp_str)
                 line += 2
-        if data is None:
-            c.execute('SELECT * FROM usul WHERE NAMEENG="{0}"'.format(
-                usul.lower()))
-            new_data = c.fetchone()
-            if new_data is not None:
-                if data[-1] is not None:
-                    strokes = new_data[-1].replace("+", " ")
-                    tmp_str = '''\n\t\\set Staff.beatStructure = #\'({0})\n'''\
-                        .format(strokes)
-                    ly_stream.append(tmp_str)
-                    line += 2
 
         ly_stream.append("\n\t\\time")
         line += 1
@@ -242,7 +236,7 @@ class ScoreConverter(object):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
          composer, poet) = MusicXMLReader.read(xml_in)
 
-        ly_stream, mapping = cls.lilypond_writer(
+        ly_stream, mapping = cls._write_lilypond(
             measures, makam, usul, form, beats, beat_type, keysig,
             render_metadata, work_title, composer, poet)
 
