@@ -176,7 +176,7 @@ class ScoreConverter(object):
                 work_title, composer, poet)
 
     @staticmethod
-    def lilypond_writer(symbtr, measures, makam, usul, form, beats, beat_type,
+    def lilypond_writer(measures, makam, usul, form, beats, beat_type,
                         keysig, render_metadata, work_title, composer, poet):
         mapping = []
 
@@ -342,10 +342,10 @@ class ScoreConverter(object):
 
                 # dotted
                 if note[3] == 1:  # dot flag
-                    temp_note += str(note[0])  # step
+                    temp_note += note[0]  # step
                     # accidental
                     temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[str(note[1])]  # octave
+                    temp_note += octaves[note[1]]  # octave
 
                     temp_dur = temp_dur * 3.0 / 2
                     temp_note += str(int(temp_dur))
@@ -354,19 +354,19 @@ class ScoreConverter(object):
                     if tuplet == 0:
                         tuplet = 4
                         temp_note += "\\tuplet 3/2 {\n\t"
-                    temp_note += str(note[0])  # step
+                    temp_note += note[0]  # step
                     # accidental
                     temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[str(note[1])]  # octave
+                    temp_note += octaves[note[1]]  # octave
 
                     temp_dur = temp_dur * 2.0 / 3
                     temp_note += str(int(temp_dur))
 
                     tuplet -= 1
-                else:  # nor
-                    temp_note += str(note[0])
+                else:  # normal
+                    temp_note += note[0]
                     temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[str(note[1])]
+                    temp_note += octaves[note[1]]
                     temp_note += str(int(temp_dur))
                 if note[7]:
                     mapping.append((note[7], pos + 4, line))
@@ -398,18 +398,17 @@ class ScoreConverter(object):
                 pos += len(temp_note) + 1
                 ly_stream.append(temp_note)
 
-            ly_stream.append("\n\t} %measure " + str(xx + 1) + " end point")
+            ly_stream.append("\n\t} % measure " + str(xx + 1) + " end point")
         ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
     def run(self, xml_in, ly_out=None, map_out=None, render_metadata=False):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
-         composer, poem) = self.read_musicxml(xml_in)
+         composer, poet) = self.read_musicxml(xml_in)
 
         ly_stream, mapping = self.lilypond_writer(
-            xml_in.split("/")[-1][:-4], measures, makam, usul, form,
-            beats, beat_type, keysig, render_metadata, work_title, composer,
-            poem)
+            measures, makam, usul, form, beats, beat_type, keysig,
+            render_metadata, work_title, composer, poet)
 
         ly_stream = u''.join(ly_stream)
         # save to file

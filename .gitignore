@@ -12,3 +12,5 @@ test*.py
 *.qrc~
 samplescores/*.ly
 samplescores/*.json
+build/
+dist/
