@@ -2,8 +2,11 @@
     \include "makam.ly" 
     \header { 
           tagline = ""
-          
-		}
+          title = "Pesendîde Sazsemâîsi"
+          composer = "III. Selim (İlhâmî)"
+          metre = "Usul: Aksaksemâî"
+          piece = "Makam: Pesendîde, Form: Sazsemâîsi"
+}
     {
       %\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
@@ -25,7 +28,7 @@
 	b'8 % SymbTr-txt #9
 	a'8 % SymbTr-txt #10
 	g'8 % SymbTr-txt #11
-	} %measure 1 end point
+	} % measure 1 end point
 	
 	{ % measure 2 beginning
 	g''4 % SymbTr-txt #12
@@ -36,7 +39,7 @@
 	d''8 % SymbTr-txt #17
 	d''4 % SymbTr-txt #18
 	r8 % SymbTr-txt #19
-	} %measure 2 end point
+	} % measure 2 end point
 	
 	{ % measure 3 beginning
 	b'8 % SymbTr-txt #20
@@ -52,7 +55,7 @@
 	cb''16 % SymbTr-txt #30
 	b'8 % SymbTr-txt #31
 	r8 % SymbTr-txt #32
-	} %measure 3 end point
+	} % measure 3 end point
 	
 	{ % measure 4 beginning
 	b'8 % SymbTr-txt #33
@@ -65,7 +68,7 @@
 	fb'16 % SymbTr-txt #40
 	g'16 % SymbTr-txt #41
 	a'4. % SymbTr-txt #42
-	} %measure 4 end point
+	} % measure 4 end point
 	
 	{ % measure 5 beginning
 	r8^\markup { \left-align {\bold \translate #'(1 . 0) "TESLİM"}} % SymbTr-txt #43
@@ -79,7 +82,7 @@
 	bfc'8. % SymbTr-txt #51
 	a'16 % SymbTr-txt #52
 	g'8 % SymbTr-txt #53
-	} %measure 5 end point
+	} % measure 5 end point
 	
 	{ % measure 6 beginning
 	a'8. % SymbTr-txt #54
@@ -94,7 +97,7 @@
 	g'16 % SymbTr-txt #63
 	g'4 % SymbTr-txt #64
 	r8 % SymbTr-txt #65
-	} %measure 6 end point
+	} % measure 6 end point
 	
 	{ % measure 7 beginning
 	g'4^\markup { \left-align {\bold \translate #'(1 . 0) "2. HANE"}} % SymbTr-txt #66
@@ -104,7 +107,7 @@
 	c''8 % SymbTr-txt #70
 	d''4 % SymbTr-txt #71
 	r8 % SymbTr-txt #72
-	} %measure 7 end point
+	} % measure 7 end point
 	
 	{ % measure 8 beginning
 	g''4 % SymbTr-txt #73
@@ -115,7 +118,7 @@
 	a''8 % SymbTr-txt #78
 	g''8 % SymbTr-txt #79
 	fb''8 % SymbTr-txt #80
-	} %measure 8 end point
+	} % measure 8 end point
 	
 	{ % measure 9 beginning
 	g''4 % SymbTr-txt #81
@@ -126,7 +129,7 @@
 	efb''8 % SymbTr-txt #86
 	d''4 % SymbTr-txt #87
 	r8 % SymbTr-txt #88
-	} %measure 9 end point
+	} % measure 9 end point
 	
 	{ % measure 10 beginning
 	r8 % SymbTr-txt #89
@@ -139,7 +142,7 @@
 	a'8 % SymbTr-txt #96
 	g'4 % SymbTr-txt #97
 	r8 % SymbTr-txt #98
-	} %measure 10 end point
+	} % measure 10 end point
 	
 	{ % measure 11 beginning
 	r8^\markup { \left-align {\bold \translate #'(1 . 0) "TESLİM"}} % SymbTr-txt #99
@@ -153,7 +156,7 @@
 	bfc'8. % SymbTr-txt #107
 	a'16 % SymbTr-txt #108
 	g'8 % SymbTr-txt #109
-	} %measure 11 end point
+	} % measure 11 end point
 	
 	{ % measure 12 beginning
 	a'8. % SymbTr-txt #110
@@ -168,7 +171,7 @@
 	g'16 % SymbTr-txt #119
 	g'4 % SymbTr-txt #120
 	r8 % SymbTr-txt #121
-	} %measure 12 end point
+	} % measure 12 end point
 	
 	{ % measure 13 beginning
 	g''4^\markup { \left-align {\bold \translate #'(1 . 0) "3. HANE"}} % SymbTr-txt #122
@@ -179,7 +182,7 @@
 	d''8 % SymbTr-txt #127
 	c''4 % SymbTr-txt #128
 	bfc'8 % SymbTr-txt #129
-	} %measure 13 end point
+	} % measure 13 end point
 	
 	{ % measure 14 beginning
 	a'4 % SymbTr-txt #130
@@ -190,7 +193,7 @@
 	a'8 % SymbTr-txt #135
 	g'4 % SymbTr-txt #136
 	r8 % SymbTr-txt #137
-	} %measure 14 end point
+	} % measure 14 end point
 	
 	{ % measure 15 beginning
 	g'8 % SymbTr-txt #138
@@ -202,7 +205,7 @@
 	fb''8 % SymbTr-txt #144
 	g''4 % SymbTr-txt #145
 	fb''8 % SymbTr-txt #146
-	} %measure 15 end point
+	} % measure 15 end point
 	
 	{ % measure 16 beginning
 	g''4 % SymbTr-txt #147
@@ -213,7 +216,7 @@
 	a''8 % SymbTr-txt #152
 	g''4 % SymbTr-txt #153
 	r8 % SymbTr-txt #154
-	} %measure 16 end point
+	} % measure 16 end point
 	
 	{ % measure 17 beginning
 	r8^\markup { \left-align {\bold \translate #'(1 . 0) "TESLİM"}} % SymbTr-txt #155
@@ -227,7 +230,7 @@
 	bfc'8. % SymbTr-txt #163
 	a'16 % SymbTr-txt #164
 	g'8 % SymbTr-txt #165
-	} %measure 17 end point
+	} % measure 17 end point
 	
 	{ % measure 18 beginning
 	a'8. % SymbTr-txt #166
@@ -242,7 +245,7 @@
 	g'16 % SymbTr-txt #175
 	g'4 % SymbTr-txt #176
 	r8 % SymbTr-txt #177
-	} %measure 18 end point
+	} % measure 18 end point
 	
 	{ % measure 19 beginning
 	g''8^\markup { \left-align {\bold \translate #'(1 . 0) "4. HANE"}} % SymbTr-txt #179
@@ -252,7 +255,7 @@
 	a''8 % SymbTr-txt #183
 	g''16 % SymbTr-txt #184
 	a''16 % SymbTr-txt #185
-	} %measure 19 end point
+	} % measure 19 end point
 	
 	{ % measure 20 beginning
 	bfc'8 % SymbTr-txt #186
@@ -263,7 +266,7 @@
 	e''8 % SymbTr-txt #191
 	fb''16 % SymbTr-txt #192
 	g''16 % SymbTr-txt #193
-	} %measure 20 end point
+	} % measure 20 end point
 	
 	{ % measure 21 beginning
 	bfc''8 % SymbTr-txt #194
@@ -273,7 +276,7 @@
 	c'''16 % SymbTr-txt #198
 	bfc''8 % SymbTr-txt #199
 	a''8 % SymbTr-txt #200
-	} %measure 21 end point
+	} % measure 21 end point
 	
 	{ % measure 22 beginning
 	fb''8 % SymbTr-txt #201
@@ -284,7 +287,7 @@
 	bfc''8 % SymbTr-txt #206
 	a''16 % SymbTr-txt #207
 	g''16 % SymbTr-txt #208
-	} %measure 22 end point
+	} % measure 22 end point
 	
 	{ % measure 23 beginning
 	d''8 % SymbTr-txt #209
@@ -292,7 +295,7 @@
 	g''8 % SymbTr-txt #211
 	fb''8 % SymbTr-txt #212
 	a''4 % SymbTr-txt #213
-	} %measure 23 end point
+	} % measure 23 end point
 	
 	{ % measure 24 beginning
 	g''8 % SymbTr-txt #214
@@ -303,7 +306,7 @@
 	d''8 % SymbTr-txt #219
 	c''16 % SymbTr-txt #220
 	bfc'16 % SymbTr-txt #221
-	} %measure 24 end point
+	} % measure 24 end point
 	
 	{ % measure 25 beginning
 	bfc'8 % SymbTr-txt #222
@@ -312,7 +315,7 @@
 	g'8 % SymbTr-txt #225
 	g'8 % SymbTr-txt #226
 	e''8 % SymbTr-txt #227
-	} %measure 25 end point
+	} % measure 25 end point
 	
 	{ % measure 26 beginning
 	d''8 % SymbTr-txt #228
@@ -320,7 +323,7 @@
 	bfc'8 % SymbTr-txt #230
 	a'8 % SymbTr-txt #231
 	g'4 % SymbTr-txt #232
-	} %measure 26 end point
+	} % measure 26 end point
 	
 	{ % measure 27 beginning
 	r8^\markup { \left-align {\bold \translate #'(1 . 0) "TESLİM"}} % SymbTr-txt #234
@@ -334,7 +337,7 @@
 	bfc'8. % SymbTr-txt #242
 	a'16 % SymbTr-txt #243
 	g'8 % SymbTr-txt #244
-	} %measure 27 end point
+	} % measure 27 end point
 	
 	{ % measure 28 beginning
 	a'8. % SymbTr-txt #245
@@ -349,9 +352,9 @@
 	g'16 % SymbTr-txt #254
 	g'4 % SymbTr-txt #255
 	r8 % SymbTr-txt #256
-	} %measure 28 end point
+	} % measure 28 end point
 	
 	{ % measure 29 beginning
-	} %measure 29 end point
+	} % measure 29 end point
 	\bar "|."
 }

@@ -238,7 +238,7 @@ class ScoreConverter(object):
 
     @classmethod
     def convert(cls, xml_in, ly_out=None, mapping_out=None,
-                render_metadata=False):
+                render_metadata=True):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
          composer, poet) = MusicXMLReader.read(xml_in)
 
