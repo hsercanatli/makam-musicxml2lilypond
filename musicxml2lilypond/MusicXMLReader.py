@@ -16,8 +16,8 @@ class MusicXMLReader(object):
                          'slash-quarter-sharp': '+5',
                          'slash-sharp': '+8'}
 
-    @staticmethod
-    def read(xml_in):
+    @classmethod
+    def read(cls, xml_in):
         """
         :param xml_in:
         :rtype: object
@@ -36,19 +36,19 @@ class MusicXMLReader(object):
         beats = root.find('part/measure/attributes/time/beats').text
 
         # getting key signatures
-        keysig = MusicXMLReader._get_key_signature(root)
+        keysig = cls._get_key_signature(root)
 
         # makam, form and usul information
-        makam, form, usul = MusicXMLReader._get_makam_form_usul(root)
+        makam, form, usul = cls._get_makam_form_usul(root)
 
         # work title
-        work_title = MusicXMLReader._get_title(root)
+        work_title = cls._get_title(root)
 
         # composer and lyricist
-        composer, lyricist = MusicXMLReader._get_composer_lyricist(root)
+        composer, lyricist = cls._get_composer_lyricist(root)
 
         # reading the xml measure by measure
-        measures = MusicXMLReader._get_measures(root)
+        measures = cls._get_measures(root)
 
         return (measures, makam, usul, form, beats, beat_type, keysig,
                 work_title, composer, lyricist)
