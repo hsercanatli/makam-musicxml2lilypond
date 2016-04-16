@@ -31,11 +31,6 @@ class MusicXMLReader(object):
         except IOError:  # string input
             root = eT.fromstring(xml_in, parser)
 
-        # tempo
-        bpm = float(root.find('part/measure/direction/sound').attrib['tempo'])
-        divisions = float(root.find('part/measure/attributes/divisions').text)
-        qnotelen = 60000.0 / bpm
-
         # getting beats and beat type
         beat_type = root.find('part/measure/attributes/time/beat-type').text
         beats = root.find('part/measure/attributes/time/beats').text
@@ -53,7 +48,7 @@ class MusicXMLReader(object):
         composer, lyricist = MusicXMLReader._get_composer_lyricist(root)
 
         # reading the xml measure by measure
-        measures = MusicXMLReader._get_measures(root, divisions, qnotelen)
+        measures = MusicXMLReader._get_measures(root)
 
         return (measures, makam, usul, form, beats, beat_type, keysig,
                 work_title, composer, lyricist)
@@ -110,7 +105,13 @@ class MusicXMLReader(object):
         return composer, lyricist
 
     @classmethod
-    def _get_measures(cls, root, divisions, qnotelen):
+    def _get_measures(cls, root):
+        # tempo
+        bpm = float(root.find('part/measure/direction/sound').attrib['tempo'])
+        divisions = float(root.find('part/measure/attributes/divisions').text)
+        quarter_note_len = 60000.0 / bpm
+
+        # read measures
         measures = []
         for measure_index, measure in enumerate(root.findall('part/measure')):
             temp_measure = []
@@ -168,15 +169,16 @@ class MusicXMLReader(object):
                 else:
                     lyric = ''
 
-                if dur is not None:
-                    # appending attributes to the temp note
-                    normal_dur = (int(qnotelen * float(dur) / divisions) /
-                                  qnotelen)
-                else:
+                if dur is None:
                     normal_dur = None
+                else:
+                    normal_dur = (int(quarter_note_len * float(dur) /
+                                      divisions) / quarter_note_len)
 
+                # appending attributes to the temp note
                 temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur,
                              extra, lyric]
+
                 temp_measure.append(temp_note)
 
             # add temp measure to the measure
