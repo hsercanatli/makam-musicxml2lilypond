@@ -7,27 +7,28 @@ __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
 
 class MusicXMLReader(object):
+    makam_accidentals = {'quarter-flat': '-1',
+                         'slash-flat': '-4',
+                         'flat': '-5',
+                         'double-slash-flat': '-8',
+                         'quarter-sharp': '+1',
+                         'sharp': '+4',
+                         'slash-quarter-sharp': '+5',
+                         'slash-sharp': '+8'}
+
     @staticmethod
     def read(xml_in):
         """
         :param xml_in:
         :rtype: object
         """
-        makam_accidentals = {'quarter-flat': '-1',
-                             'slash-flat': '-4',
-                             'flat': '-5',
-                             'double-slash-flat': '-8',
-                             'quarter-sharp': '+1',
-                             'sharp': '+4',
-                             'slash-quarter-sharp': '+5',
-                             'slash-sharp': '+8'}
 
         # setting the xml tree
-        parser = XMLCommentHandler()
+        parser = _XMLCommentHandler()
         try:  # document
             tree = eT.parse(xml_in, parser)
             root = tree.getroot()
-        except IOError:  # stirng input
+        except IOError:  # string input
             root = eT.fromstring(xml_in, parser)
 
         # tempo
@@ -40,13 +41,35 @@ class MusicXMLReader(object):
         beats = root.find('part/measure/attributes/time/beats').text
 
         # getting key signatures
+        keysig = MusicXMLReader._get_key_signature(root)
+
+        # makam, form and usul information
+        makam, form, usul = MusicXMLReader._get_makam_form_usul(root)
+
+        # work title
+        work_title = MusicXMLReader._get_title(root)
+
+        # composer and lyricist
+        composer, lyricist = MusicXMLReader._get_composer_lyricist(root)
+
+        # reading the xml measure by measure
+        measures = MusicXMLReader._get_measures(root, divisions, qnotelen)
+
+        return (measures, makam, usul, form, beats, beat_type, keysig,
+                work_title, composer, lyricist)
+
+    @staticmethod
+    def _get_key_signature(root):
         keysig = {}  # keys: notes, values: type of note accident
         for xx, key in enumerate(
                 root.findall('part/measure/attributes/key/key-step')):
             keysig[key.text] = root.findall(
                 'part/measure/attributes/key/key-accidental')[xx].text
 
-        # makam and usul information
+        return keysig
+
+    @staticmethod
+    def _get_makam_form_usul(root):
         if root.find('part/measure/direction/direction-type/words').text:
             # entered if makam and usul exist
             cultural_info = root.find(
@@ -63,24 +86,32 @@ class MusicXMLReader(object):
             usul = ''.strip()
             form = ''.strip()
 
-        # work title
+        return makam, form, usul
+
+    @staticmethod
+    def _get_title(root):
         if root.find('work/work-title').text:
             work_title = ''.join(root.find('work/work-title').text).strip()
         else:
             work_title = ''.strip()
 
-        # composer and lyricist
+        return work_title
+
+    @staticmethod
+    def _get_composer_lyricist(root):
         identification = [item.text for item in root.findall(
             'identification/creator')]
         if len(identification) == 2:
             composer = ''.join(identification[0]).strip()
-            poet = ''.join(identification[1]).strip()
+            lyricist = ''.join(identification[1]).strip()
         else:
             composer = ''.join(identification[0]).strip()
-            poet = ''.strip()
+            lyricist = ''.strip()
+        return composer, lyricist
 
+    @classmethod
+    def _get_measures(cls, root, divisions, qnotelen):
         measures = []
-        # reading the xml measure by measure
         for measure_index, measure in enumerate(root.findall('part/measure')):
             temp_measure = []
             # all notes in the current measure
@@ -115,7 +146,7 @@ class MusicXMLReader(object):
 
                     # accident inf
                 if note.find('accidental') is not None:
-                    acc = makam_accidentals[note.find('accidental').text]
+                    acc = cls.makam_accidentals[note.find('accidental').text]
                 else:
                     acc = 0
 
@@ -148,15 +179,14 @@ class MusicXMLReader(object):
                              extra, lyric]
                 temp_measure.append(temp_note)
 
-            # adding temp measure to the measure
+            # add temp measure to the measure
             measures.append(temp_measure)
-        return (measures, makam, usul, form, beats, beat_type, keysig,
-                work_title, composer, poet)
+        return measures
 
 
-class XMLCommentHandler(eT.XMLTreeBuilder):
+class _XMLCommentHandler(eT.XMLTreeBuilder):
     def __init__(self):
-        super(XMLCommentHandler, self).__init__()
+        super(_XMLCommentHandler, self).__init__()
 
         # assumes ElementTree 1.2.X
         self._parser.CommentHandler = self.handle_comment
