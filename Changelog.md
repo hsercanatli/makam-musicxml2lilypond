@@ -1,6 +1,6 @@
 #### musicxml2lilypond v0.9.4
  - Added simple gracenote parsing
- - Better string maintainaiblity by enforcing ```__future__.unicode_literals```
+ - Better string maintainability by enforcing ```__future__.unicode_literals```
  - Added ```unittests```
  - Created and modularized ```MusicXMLReader```
  - Cleaned setup requirements
