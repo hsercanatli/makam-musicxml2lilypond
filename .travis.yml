@@ -1,0 +1,26 @@
+# we only need to point to python for the tests to run
+language: python
+python:
+  - "2.7"
+#  - "3.3"
+#  - "3.4"
+#  - "3.5"
+
+before_install:
+  - pip install codecov
+
+# command to install dependencies
+install:
+  - pip install flake8
+  - pip install -r requirements
+
+# command to run before the tests
+before_script:
+  - "flake8 musicxml2lilypond --ignore="
+
+# command to run tests
+script:
+  - nosetests musicxml2lilypond/unittests/ --with-coverage
+
+after_success:
+  - codecov
