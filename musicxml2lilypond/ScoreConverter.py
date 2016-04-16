@@ -35,8 +35,8 @@ class ScoreConverter(object):
           title = \"{0}\"
           composer = \"{1}\"
           piece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
-                work_title, composer, form, makam, usul) + poet_str
-                         + """
+                work_title, composer, form, makam, usul) + poet_str +
+                         """
     }
     {
       %\\override Score.SpacingSpanner.strict-note-spacing = ##t
