@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals, division
-from .MusicXMLReader import MusicXMLReader
+from MusicXMLReader import MusicXMLReader
 import os
 import json
 import sqlite3
@@ -237,7 +237,8 @@ class ScoreConverter(object):
         return ly_stream, mapping
 
     @classmethod
-    def run(cls, xml_in, ly_out=None, map_out=None, render_metadata=False):
+    def convert(cls, xml_in, ly_out=None, mapping_out=None,
+                render_metadata=False):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
          composer, poet) = MusicXMLReader.read(xml_in)
 
@@ -253,8 +254,7 @@ class ScoreConverter(object):
                 outfile.write(ly_stream.encode('utf-8'))
 
         # save to json
-        if map_out is not None:
-            with open(xml_in + ".json", 'w') as outfile:
-                json.dump(mapping, outfile)
+        if mapping_out is not None:
+            json.dump(mapping, open(xml_in + ".json", 'w'))
 
         return ly_stream, mapping

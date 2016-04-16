@@ -23,7 +23,7 @@ class MusicXMLReader(object):
                              'slash-sharp': '+8'}
 
         # setting the xml tree
-        parser = CommentHandler()
+        parser = XMLCommentHandler()
         try:  # document
             tree = eT.parse(xml_in, parser)
             root = tree.getroot()
@@ -154,9 +154,9 @@ class MusicXMLReader(object):
                 work_title, composer, poet)
 
 
-class CommentHandler(eT.XMLTreeBuilder):
+class XMLCommentHandler(eT.XMLTreeBuilder):
     def __init__(self):
-        super(CommentHandler, self).__init__()
+        super(XMLCommentHandler, self).__init__()
 
         # assumes ElementTree 1.2.X
         self._parser.CommentHandler = self.handle_comment

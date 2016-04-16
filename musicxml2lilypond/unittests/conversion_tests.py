@@ -1,4 +1,4 @@
-from musicxml2lilypond.musicxml2lilypond import ScoreConverter
+from musicxml2lilypond.ScoreConverter import ScoreConverter
 import os
 
 
