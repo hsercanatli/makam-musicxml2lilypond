@@ -67,12 +67,12 @@ class MusicXMLReader(object):
     def _get_makam_form_usul(root):
         if root.find('part/measure/direction/direction-type/words').text:
             # the information is stored in the form below:
-            # "Makam: Pesendîde, Form: Sazsemâîsi, Usul: Aksaksemâî "
-            cultural_info_splitted = root.find(
-                'part/measure/direction/direction-type/words').text.split(",")
+            # "Makam: [makam], Form: [form], Usul: [usul] "
+            cultural_info = root.find(
+                'part/measure/direction/direction-type/words').text
 
             attributes = []
-            for info in cultural_info_splitted:
+            for info in cultural_info.split(","):
                 attributes.append(''.join(info.split(": ")[1]).strip())
 
             makam, form, usul = attributes
@@ -116,73 +116,107 @@ class MusicXMLReader(object):
             temp_measure = []
             # all notes in the current measure
             for note_index, note in enumerate(measure.findall('note')):
-                # pitch and octave information of the current note
-                extra = None
-                if note.find("symbtrid").text:  # symbtrid
-                    extra = int(note.find("symbtrid").text)
+                # symbtr-txt id, which is stored in MusicXML
+                symbtr_txt_id = cls._get_symbtr_txt_id(note)
+
+                # rest
+                rest = cls._chk_rest(note)
 
                 # pitch and octave information of the current note
-                octave = None
-                step = None
-                if note.find('pitch') is not None:  # if pitch
-                    if note.find('pitch/step').text:  # pitch step
-                        step = note.find('pitch/step').text.lower()
-                    if note.find('pitch/octave').text:  # pitch octave
-                        octave = note.find('pitch/octave').text
-                    rest = 0
-                elif note.find('rest') is not None:  # if rest
-                    rest = 1
-                    step = 'r'
-                    octave = 'r'
-                else:
-                    raise ValueError("The element should have been a note or "
-                                     "rest")
+                pitch_step, octave = cls._get_pitchstep_octave(note, rest)
 
-                # duration
-                if note.find('duration') is not None:
-                    dur = note.find('duration').text
-                else:
-                    dur = None  # grace note
+                # symbolic duration without considering dotted, tuple etc. The
+                # duration info will be handled properly during the LilyPond
+                # conversion
+                normal_dur = cls._get_normal_dur(note, divisions,
+                                                 quarter_note_len)
 
-                    # accident inf
-                if note.find('accidental') is not None:
-                    acc = cls.makam_accidentals[note.find('accidental').text]
-                else:
-                    acc = 0
+                # accident inf
+                acc = cls._chk_accidental(note)
 
                 # dotted or not
-                if note.find('dot') is not None:
-                    dot = 1
-                else:
-                    dot = 0
+                dot = cls._chk_dotted(note)
 
                 # tuplet or not
-                if note.find('time-modification') is not None:
-                    tuplet = 1
-                else:
-                    tuplet = 0
+                tuplet = cls._chk_tuplet(note)
 
                 # lyrics
-                if note.find('lyric/text').text is not None:
-                    lyric = note.find('lyric/text').text
-                else:
-                    lyric = ''
-
-                if dur is None:
-                    normal_dur = None
-                else:
-                    normal_dur = (int(quarter_note_len * float(dur) /
-                                      divisions) / quarter_note_len)
+                lyrics = cls._get_lyrics(note)
 
                 # appending attributes to the temp note
-                temp_note = [step, octave, acc, dot, tuplet, rest, normal_dur,
-                             extra, lyric]
+                temp_note = [pitch_step, octave, acc, dot, tuplet, rest,
+                             normal_dur, symbtr_txt_id, lyrics]
 
                 temp_measure.append(temp_note)
 
             # add temp measure to the measure
             measures.append(temp_measure)
         return measures
+
+    @classmethod
+    def _get_pitchstep_octave(cls, note, rest):
+        if rest:
+            pitch_step = 'r'
+            octave = 'r'
+        elif note.find('pitch') is not None:  # pitch
+            pitch_step = note.find('pitch/step').text.lower()
+            octave = note.find('pitch/octave').text
+        else:
+            raise ValueError("The element should have been a note or "
+                             "rest")
+
+        return pitch_step, octave
+
+    @staticmethod
+    def _get_symbtr_txt_id(note):
+        if note.find("symbtrid").text:
+            return int(note.find("symbtrid").text)
+        else:
+            return None
+
+    @staticmethod
+    def _chk_rest(note):
+        if note.find('rest') is None:
+            return 0
+        else:
+            return 1
+
+    @staticmethod
+    def _get_normal_dur(note, divisions, quarter_note_len):
+        if note.find('duration') is None:  # grace note
+            return None
+        else:
+            dur = note.find('duration').text  # get the true duration
+            return (int(quarter_note_len * float(dur) / divisions) /
+                    quarter_note_len)
+
+    @classmethod
+    def _chk_accidental(cls, note):
+        if note.find('accidental') is not None:
+            return cls.makam_accidentals[note.find('accidental').text]
+        else:
+            return 0
+
+    @staticmethod
+    def _chk_dotted(note):
+        if note.find('dot') is not None:
+            return 1
+        else:
+            return 0
+
+    @staticmethod
+    def _chk_tuplet(note):
+        if note.find('time-modification') is not None:
+            return 1
+        else:
+            return 0
+
+    @staticmethod
+    def _get_lyrics(note):
+        if note.find('lyric/text').text is not None:
+            return note.find('lyric/text').text
+        else:
+            return ''
 
 
 class _XMLCommentHandler(eT.XMLTreeBuilder):
