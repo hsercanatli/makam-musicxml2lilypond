@@ -6,7 +6,7 @@
           composer = "Semahat Özdenses"
           piece = "Makam: Şarkı, Form: Uşşak, Usul: Düyek"
           poet = "Lyricist: Ahmet Cengizoğlu"
-}
+    }
     {
       %\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)

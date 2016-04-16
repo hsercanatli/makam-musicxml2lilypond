@@ -4,9 +4,8 @@
           tagline = ""
           title = "Pesendîde Sazsemâîsi"
           composer = "III. Selim (İlhâmî)"
-          metre = "Usul: Aksaksemâî"
-          piece = "Makam: Pesendîde, Form: Sazsemâîsi"
-}
+          piece = "Makam: Sazsemâîsi, Form: Pesendîde, Usul: Aksaksemâî"
+    }
     {
       %\override Score.SpacingSpanner.strict-note-spacing = ##t
       %\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
