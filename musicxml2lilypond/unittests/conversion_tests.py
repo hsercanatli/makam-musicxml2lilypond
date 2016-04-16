@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from musicxml2lilypond.ScoreConverter import ScoreConverter
 import os
 import json
-import codecs
 
 
 def test_instrumental():
