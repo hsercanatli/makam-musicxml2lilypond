@@ -25,33 +25,26 @@ class ScoreConverter(object):
         # getting headers
         if render_metadata:
             poet_str = """
-          poet = \"Lyricist: {0:s}\"""".\
-                format(lyricist) if lyricist else ''
+\tpoet = \"Lyricist: {0:s}\"""".format(lyricist) if lyricist else ''
 
-            ly_stream = ["""
-    \\include "makam.ly" """ + """
-    \\header { """ + """
-          tagline = \"\"
-          title = \"{0}\"
-          composer = \"{1}\"
-          piece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
-                work_title, composer, form, makam, usul) + poet_str +
-                         """
-    }
-    {
-      %\\override Score.SpacingSpanner.strict-note-spacing = ##t
-      %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
-                 """]
+            metadata_str = """
+\ttitle = \"{0}\"
+\tcomposer = \"{1}\"
+\tpiece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
+                work_title, composer, form, makam, usul) + poet_str
         else:
-            ly_stream = ["""
-    \\include "makam.ly" """ + """
-    \\header { """ + """
-          tagline = \"\"
-          """"\n\t\t}" + """
-    {
-      %\\override Score.SpacingSpanner.strict-note-spacing = ##t
-      %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
-                 """]
+            metadata_str = ''
+
+        ly_stream = ["""
+\\include "makam.ly" """ + """
+\\header {
+\ttagline = \"\"""" + metadata_str +
+                     """
+}
+{
+\t%\\override Score.SpacingSpanner.strict-note-spacing = ##t
+\t%\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
+             """]
 
         octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'",
                    "7": "\'\'\'\'", "r": ""}
@@ -158,7 +151,7 @@ class ScoreConverter(object):
             pos = 0
 
             for note in measure:
-                temp_note = "\n\t"
+                temp_note = "\n\t\t"
                 line += 1
                 if note[6] is None:  # gracenote
                     # for now we display it as a 8th \grace
