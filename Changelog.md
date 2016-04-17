@@ -1,3 +1,9 @@
+#### musicxml2lilypond v0.9.5
+ - Removed mapping json saving
+ - Made the lilypond output more compact
+ - \t are replaced by double spaces in the ly file
+ - Row and column indices in the mapping are fixed
+
 #### musicxml2lilypond v0.9.4
  - Added simple gracenote parsing
  - Better string maintainability by enforcing ```__future__.unicode_literals```

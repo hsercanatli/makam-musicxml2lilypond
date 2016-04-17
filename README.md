@@ -27,8 +27,8 @@ map_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.json"
 
 # instantiate
 converter = ScoreConverter()
-ly_stream, mapping = converter.convert(
-    xml_file, ly_out=ly_file, mapping_out=map_file, render_metadata=False)
+ly_stream, mapping = converter.convert(xml_file, ly_out=ly_file, 
+                                       render_metadata=False)
 ```
 
 Installation

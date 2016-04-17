@@ -3,7 +3,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 setup(name='musicxml2lilypond',
-      version='0.9.4',
+      version='0.9.5',
       author='Hasan Sercan Atli',
       author_email='hsercanatli AT gmail DOT com',
       license='agpl 3.0',
