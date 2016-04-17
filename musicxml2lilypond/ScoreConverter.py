@@ -178,6 +178,7 @@ class ScoreConverter(object):
                     if tuplet == 0:
                         tuplet = 4
                         temp_note += "\\tuplet 3/2 {\n    "
+                        line += 1
                     temp_note += '  '  # increase indentation
                     temp_note += note[0]  # step
                     # accidental
@@ -222,12 +223,15 @@ class ScoreConverter(object):
                 if tuplet == 1:
                     temp_note += "\n    }"
                     tuplet = 0
+                    line += 1
 
                 ly_stream.append(temp_note)
             if xx == len(measures) - 1:
                 ly_stream.append('''\n    \\bar \"|.\"''')  # closing bar
             ly_stream.append("\n  } % measure " + str(xx + 1) + " ending")
             line += 1
+
+        ly_stream.append("\n}")  # close lilypond
 
         return ly_stream, mapping
 
