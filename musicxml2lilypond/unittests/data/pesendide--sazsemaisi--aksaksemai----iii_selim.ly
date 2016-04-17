@@ -226,6 +226,7 @@
     r8 % SymbTr-txt row index #177
   } % measure 18 ending
   { % measure 19 beginning
+    \time6/8
     g''8^\markup { \left-align {\bold \translate #'(1 . 0) "4. HANE"}} % SymbTr-txt row index #179
     g''8 % SymbTr-txt row index #180
     bfc''8 % SymbTr-txt row index #181
@@ -296,6 +297,7 @@
     g'4 % SymbTr-txt row index #232
   } % measure 26 ending
   { % measure 27 beginning
+    \time10/8
     r8^\markup { \left-align {\bold \translate #'(1 . 0) "TESLİM"}} % SymbTr-txt row index #234
     fb'16 % SymbTr-txt row index #235
     g'16 % SymbTr-txt row index #236

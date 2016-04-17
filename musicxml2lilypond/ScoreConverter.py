@@ -51,7 +51,7 @@ class ScoreConverter(object):
                            "data", "symbtr.db")
 
     @classmethod
-    def _write_lilypond(cls, measures, makam, usul, form, beats, beat_type,
+    def _write_lilypond(cls, measures, makam, usul, form, time_sigs,
                         keysig, render_metadata, work_title, composer,
                         lyricist):
         # connecting database, trying to get information for beams in lilypond
@@ -106,11 +106,12 @@ class ScoreConverter(object):
                 ly_stream.append(tmp_str)
                 line += 1
 
+        # first time_signature
         ly_stream.append("\n  \\time")
+        ly_stream.append("{0:s}/{1:s}".format(time_sigs[0]['beats'],
+                                              time_sigs[0]['beat_type']))
+        time_sigs.pop(0, None)  # remove the first time signature
         line += 1
-
-        # time signature
-        ly_stream.append(beats + "/" + beat_type)
 
         ly_stream.append("\n  \\clef treble")
         ly_stream.append("\n  \\set Staff.keySignature = #`(")
@@ -144,10 +145,17 @@ class ScoreConverter(object):
         ly_stream.append(")")
 
         mapping = []
-        for xx, measure in enumerate(measures):
-            ly_stream.append("\n  {{ % measure {0:d} beginning".
-                             format(xx + 1))
+        for mm, measure in enumerate(measures):
+            ly_stream.append("\n  {{ % measure {0:d} beginning".format(mm + 1))
             line += 1
+
+            # apply time signature change, if exists
+            if mm in time_sigs.keys():
+                # first time_signature
+                ly_stream.append("\n    \\time")
+                ly_stream.append("{0:s}/{1:s}".format(
+                    time_sigs[mm]['beats'], time_sigs[mm]['beat_type']))
+                line += 1
 
             tuplet = 0
             for note in measure:
@@ -226,9 +234,9 @@ class ScoreConverter(object):
                     line += 1
 
                 ly_stream.append(temp_note)
-            if xx == len(measures) - 1:
+            if mm == len(measures) - 1:
                 ly_stream.append('''\n    \\bar \"|.\"''')  # closing bar
-            ly_stream.append("\n  } % measure " + str(xx + 1) + " ending")
+            ly_stream.append("\n  } % measure " + str(mm + 1) + " ending")
             line += 1
 
         ly_stream.append("\n}")  # close lilypond
@@ -237,11 +245,11 @@ class ScoreConverter(object):
 
     @classmethod
     def convert(cls, xml_in, ly_out=None, render_metadata=True):
-        (measures, makam, usul, form, beats, beat_type, keysig, work_title,
+        (measures, makam, usul, form, time_sigs, keysig, work_title,
          composer, poet) = MusicXMLReader.read(xml_in)
 
         ly_stream, mapping = cls._write_lilypond(
-            measures, makam, usul, form, beats, beat_type, keysig,
+            measures, makam, usul, form, time_sigs, keysig,
             render_metadata, work_title, composer, poet)
 
         ly_stream = u''.join(ly_stream)

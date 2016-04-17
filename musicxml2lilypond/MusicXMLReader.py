@@ -35,10 +35,6 @@ class MusicXMLReader(object):
         except ParseError:
             raise ParseError("Line 36(ish): Error parsing MusicXML file.")
 
-        # getting beats and beat type
-        beat_type = root.find('part/measure/attributes/time/beat-type').text
-        beats = root.find('part/measure/attributes/time/beats').text
-
         # getting key signatures
         keysig = cls._get_key_signature(root)
 
@@ -52,9 +48,9 @@ class MusicXMLReader(object):
         composer, lyricist = cls._get_composer_lyricist(root)
 
         # reading the xml measure by measure
-        measures = cls._get_measures(root)
+        measures, time_sigs = cls._get_measures(root)
 
-        return (measures, makam, usul, form, beats, beat_type, keysig,
+        return (measures, makam, usul, form, time_sigs, keysig,
                 work_title, composer, lyricist)
 
     @staticmethod
@@ -114,9 +110,22 @@ class MusicXMLReader(object):
         divisions = float(root.find('part/measure/attributes/divisions').text)
         quarter_note_len = 60000.0 / bpm
 
+        beat_type = root.find('part/measure/attributes/time/beat-type').text
+        beats = root.find('part/measure/attributes/time/beats').text
+
         # read measures
         measures = []
+        time_sigs = {}
         for measure_index, measure in enumerate(root.findall('part/measure')):
+            # check time signature changes
+            time_sig_change = measure.find('attributes/time')
+            if time_sig_change is not None:
+                beat_type = time_sig_change.find('beat-type').text
+                beats = time_sig_change.find('beats').text
+                time_sigs[measure_index] = {'beat_type': beat_type,
+                                            'beats': beats}
+
+            # read notes/rests
             temp_measure = []
             # all notes in the current measure
             for note_index, note in enumerate(measure.findall('note')):
@@ -155,7 +164,10 @@ class MusicXMLReader(object):
 
             # add temp measure to the measure
             measures.append(temp_measure)
-        return measures
+
+        assert 0 in time_sigs.keys(), \
+            'The MusicXML score does not start with a time signature'
+        return measures, time_sigs
 
     @staticmethod
     def _get_pitchstep_octave(note, rest):
