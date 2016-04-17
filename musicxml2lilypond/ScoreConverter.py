@@ -12,42 +12,6 @@ class ScoreConverter(object):
     def _write_lilypond(measures, makam, usul, form, beats, beat_type,
                         keysig, render_metadata, work_title, composer,
                         lyricist):
-        mapping = []
-
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "data", "symbtr.db")
-
-        # connecting database, trying to get information for beams in lilypond
-        conn = sqlite3.connect(os.path.join(db_path))
-        c = conn.cursor()
-
-        # getting headers
-        if render_metadata:
-            if lyricist and lyricist != '-':
-                poet_str = """
-\tpoet = \"{0:s}\"""".format(lyricist)
-            else:
-                poet_str = ''
-
-            metadata_str = """
-\ttitle = \"{0}\"
-\tcomposer = \"{1}\"
-\tpiece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
-                work_title, composer, form, makam, usul) + poet_str
-        else:
-            metadata_str = ''
-
-        ly_stream = ["""
-\\include "makam.ly" """ + """
-\\header {
-\ttagline = \"\"""" + metadata_str +
-                     """
-}
-{
-\t%\\override Score.SpacingSpanner.strict-note-spacing = ##t
-\t%\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)
-             """]
-
         octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'",
                    "7": "\'\'\'\'", "r": ""}
 
@@ -87,8 +51,43 @@ class ScoreConverter(object):
         sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A',
                                  1: 'E', 0: 'B'}
 
-        # Starting from 4 because of the lilypond header, defined in main func
-        line = 6
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               "data", "symbtr.db")
+
+        # connecting database, trying to get information for beams in lilypond
+        conn = sqlite3.connect(os.path.join(db_path))
+        c = conn.cursor()
+
+        # Initialize line number and mapping
+        line = 0
+
+        # getting headers
+        if render_metadata:
+            if lyricist and lyricist != '-':
+                poet_str = """\n  poet = \"{0:s}\"""".format(lyricist)
+                line += 1
+            else:
+                poet_str = ''
+
+            metadata_str = """
+  title = \"{0}\"
+  composer = \"{1}\"
+  piece = \"Makam: {2}, Form: {3}, Usul: {4}\"""".format(
+                work_title, composer, form, makam, usul) + poet_str
+            line += 3
+        else:
+            metadata_str = ''
+
+        ly_stream = ["""
+\\include "makam.ly" """ + """
+\\header {
+  tagline = \"\"""" + metadata_str +
+                     """
+}
+{
+  %\\override Score.SpacingSpanner.strict-note-spacing = ##t
+  %\\set Score.proportionalNotationDuration = #(ly:make-moment 1/8)"""]
+        line += 8
 
         # getting the components for the given usul
         c.execute('SELECT * FROM usul WHERE NAME="{0}"'.format(usul))
@@ -102,19 +101,19 @@ class ScoreConverter(object):
         if data is not None:
             if data[-1] is not None:
                 strokes = data[-1].replace("+", " ")
-                tmp_str = '''\n\t\\set Staff.beatStructure = #\'({0})\n'''\
+                tmp_str = '''\n  \\set Staff.beatStructure = #\'({0})'''\
                     .format(strokes)
                 ly_stream.append(tmp_str)
-                line += 2
+                line += 1
 
-        ly_stream.append("\n\t\\time")
+        ly_stream.append("\n  \\time")
         line += 1
 
         # time signature
         ly_stream.append(beats + "/" + beat_type)
 
-        ly_stream.append("\n\t\\clef treble \n\t\\set Staff.keySignature = #`("
-                         )
+        ly_stream.append("\n  \\clef treble")
+        ly_stream.append("\n  \\set Staff.keySignature = #`(")
         line += 2
 
         accidentals_check = []
@@ -144,16 +143,15 @@ class ScoreConverter(object):
 
         ly_stream.append(")")
 
+        mapping = []
         for xx, measure in enumerate(measures):
-            ly_stream.append("\n\t")
+            ly_stream.append("\n  {{ % measure {0:d} beginning".
+                             format(xx + 1))
             line += 1
-            ly_stream.append("\n\t{{ % measure {0:d} beginning".format(xx + 1))
 
             tuplet = 0
-            pos = 0
-
             for note in measure:
-                temp_note = "\n\t\t"
+                temp_note = "\n    "
                 line += 1
                 if note[6] is None:  # gracenote
                     # for now we display it as a 8th \grace
@@ -178,7 +176,7 @@ class ScoreConverter(object):
                 elif note[4] == 1:  # tuplet flag
                     if tuplet == 0:
                         tuplet = 4
-                        temp_note += "\\tuplet 3/2 {\n\t"
+                        temp_note += "\\tuplet 3/2 {\n  "
                     temp_note += note[0]  # step
                     # accidental
                     temp_note += accidentals[str(note[2]).replace('+', '')]
@@ -194,7 +192,8 @@ class ScoreConverter(object):
                     temp_note += octaves[note[1]]
                     temp_note += str(int(temp_dur))
                 if note[7]:
-                    mapping.append((note[7], pos + 4, line))
+                    pos = len('    ')  # notes start with 4 spaces
+                    mapping.append((note[7], pos, line))
 
                 # lyrics
                 if note[-1] is not "":
@@ -216,15 +215,16 @@ class ScoreConverter(object):
                             ''.join(note[-1]).strip() + '''\"}}''')
 
                 if tuplet == 1:
-                    temp_note += "\n\t }"
+                    temp_note += "\n   }"
                     tuplet = 0
 
-                temp_note += ' % SymbTr-txt #' + str(note[7])
-                pos += len(temp_note) + 1
+                temp_note += ' % SymbTr-txt row index #' + str(note[7])
                 ly_stream.append(temp_note)
+            if xx == len(measures) - 1:
+                ly_stream.append('''\n  \\bar \"|.\"''')  # closing bar
+            ly_stream.append("\n  } % measure " + str(xx + 1) + " ending")
+            line += 1
 
-            ly_stream.append("\n\t} % measure " + str(xx + 1) + " end point")
-        ly_stream.append('''\n\t\\bar \"|.\"''' + "\n}")
         return ly_stream, mapping
 
     @classmethod
