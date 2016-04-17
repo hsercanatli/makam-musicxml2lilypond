@@ -323,3 +323,4 @@
     r8 % SymbTr-txt row index #256
     \bar "|."
   } % measure 28 ending
+}

@@ -300,3 +300,4 @@
     a'2_\markup { \center-align {\smaller \translate #'(0 . -2.5) "ne"}} % SymbTr-txt row index #228
     \bar "|."
   } % measure 29 ending
+}
