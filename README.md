@@ -46,12 +46,6 @@ If you want to be able to edit files and have the changes be reflected, then
 install the repository like this instead:
 
     pip install -e .
-    
-Changelog
---------
- - Removed mapping json saving
- - Made the lilypond output more compact
- - Row and column indices in the mapping are fixed
 
 Authors
 -------
