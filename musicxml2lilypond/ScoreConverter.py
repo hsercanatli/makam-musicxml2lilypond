@@ -221,7 +221,7 @@ class ScoreConverter(object):
                 temp_note += ' % SymbTr-txt row index #' + str(note[7])
                 ly_stream.append(temp_note)
             if xx == len(measures) - 1:
-                ly_stream.append('''\n  \\bar \"|.\"''')  # closing bar
+                ly_stream.append('''\n    \\bar \"|.\"''')  # closing bar
             ly_stream.append("\n  } % measure " + str(xx + 1) + " ending")
             line += 1
 

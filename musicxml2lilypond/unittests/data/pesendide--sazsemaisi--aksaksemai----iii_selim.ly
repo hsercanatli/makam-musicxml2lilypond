@@ -321,5 +321,5 @@
     g'16 % SymbTr-txt row index #254
     g'4 % SymbTr-txt row index #255
     r8 % SymbTr-txt row index #256
-  \bar "|."
+    \bar "|."
   } % measure 28 ending

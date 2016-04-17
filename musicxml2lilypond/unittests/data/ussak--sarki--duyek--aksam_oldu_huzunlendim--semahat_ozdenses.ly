@@ -298,5 +298,5 @@
     bfc'16_\markup { \center-align {\smaller \translate #'(0 . -2.5) "gi"}} % SymbTr-txt row index #226
     a'16 % SymbTr-txt row index #227
     a'2_\markup { \center-align {\smaller \translate #'(0 . -2.5) "ne"}} % SymbTr-txt row index #228
-  \bar "|."
+    \bar "|."
   } % measure 29 ending
