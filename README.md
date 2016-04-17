@@ -51,8 +51,8 @@ Authors
 -------
 Hasan Sercan Atlı	hsercanatli AT gmail DOT com  
 Burak Uyar	burakuyar AT gmail DOT com  
-Andrés Ferraro	andres DOT ferraro AT upf DOT edu  
 Sertan Şentürk	contact AT sertansenturk DOT com  
+Andrés Ferraro	andres DOT ferraro AT upf DOT edu  
 
 Reference
 -------
