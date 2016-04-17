@@ -8,54 +8,54 @@ __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
 
 class ScoreConverter(object):
-    @staticmethod
-    def _write_lilypond(measures, makam, usul, form, beats, beat_type,
+    _octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'",
+                "7": "\'\'\'\'", "r": ""}
+
+    _accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
+                    "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
+
+    # notes and accidentals dictionary lilypond
+    _notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "0",
+                           "d": "1", "e": "2", "f": "3"}
+
+    _key_sig_accidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
+                            'flat': "(- KUCUK)",
+                            'slash-flat': "(- BAKIYE)",
+                            'quarter-flat': "(- KOMA)",
+                            'slash-sharp': "BUYUKMUCENNEP",
+                            'slash-quarter-sharp': "KUCUK",
+                            'sharp': "BAKIYE",
+                            'quarter-sharp': "KOMA"}
+
+    _makam_accidentals = {'quarter-flat': '-1',
+                          'slash-flat': '-4',
+                          'flat': '-5',
+                          'double-slash-flat': '-8',
+                          'quarter-sharp': '+1',
+                          'sharp': '+4',
+                          'slash-quarter-sharp': '+5',
+                          'slash-sharp': '+8'}
+
+    # sorting rules of key signatures
+    sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5,
+                        'B': 6}
+    sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A',
+                              5: 'E', 6: 'B'}
+
+    sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1,
+                       'B': 0}
+    sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A',
+                             1: 'E', 0: 'B'}
+
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                           "data", "symbtr.db")
+
+    @classmethod
+    def _write_lilypond(cls, measures, makam, usul, form, beats, beat_type,
                         keysig, render_metadata, work_title, composer,
                         lyricist):
-        octaves = {"2": ",", "3": "", "4": "\'", "5": "\'\'", "6": "\'\'\'",
-                   "7": "\'\'\'\'", "r": ""}
-
-        accidentals = {"-1": "fc", "-4": "fb", "-5": "fk", "-8": "fbm",
-                       "1": "c", "4": "b", "5": "k", "8": "bm", "0": ""}
-
-        # notes and accidentals dictionary lilypond
-        notes_western2lily = {"g": "4", "a": "5", "b": "6", "c": "0",
-                              "d": "1", "e": "2", "f": "3"}
-
-        notes_keyaccidentals = {'double-slash-flat': "(- BUYUKMUCENNEP)",
-                                'flat': "(- KUCUK)",
-                                'slash-flat': "(- BAKIYE)",
-                                'quarter-flat': "(- KOMA)",
-                                'slash-sharp': "BUYUKMUCENNEP",
-                                'slash-quarter-sharp': "KUCUK",
-                                'sharp': "BAKIYE",
-                                'quarter-sharp': "KOMA"}
-
-        makam_accidents = {'quarter-flat': '-1',
-                           'slash-flat': '-4',
-                           'flat': '-5',
-                           'double-slash-flat': '-8',
-                           'quarter-sharp': '+1',
-                           'sharp': '+4',
-                           'slash-quarter-sharp': '+5',
-                           'slash-sharp': '+8'}
-
-        # sorting rules of key signatures
-        sort_rule_sharps = {'F': 0, 'C': 1, 'G': 2, 'D': 3, 'A': 4, 'E': 5,
-                            'B': 6}
-        sort_rule_notes_sharps = {0: 'F', 1: 'C', 2: 'G', 3: 'D', 4: 'A',
-                                  5: 'E', 6: 'B'}
-
-        sort_rule_flats = {'F': 6, 'C': 5, 'G': 4, 'D': 3, 'A': 2, 'E': 1,
-                           'B': 0}
-        sort_rule_notes_flats = {6: 'F', 5: 'C', 4: 'G', 3: 'D', 2: 'A',
-                                 1: 'E', 0: 'B'}
-
-        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               "data", "symbtr.db")
-
         # connecting database, trying to get information for beams in lilypond
-        conn = sqlite3.connect(os.path.join(db_path))
+        conn = sqlite3.connect(os.path.join(cls.db_path))
         c = conn.cursor()
 
         # Initialize line number and mapping
@@ -101,7 +101,7 @@ class ScoreConverter(object):
         if data is not None:
             if data[-1] is not None:
                 strokes = data[-1].replace("+", " ")
-                tmp_str = '''\n  \\set Staff.beatStructure = #\'({0})'''\
+                tmp_str = '''\n  \\set Staff.beatStructure = #\'({0})''' \
                     .format(strokes)
                 ly_stream.append(tmp_str)
                 line += 1
@@ -119,23 +119,23 @@ class ScoreConverter(object):
         accidentals_check = []
         rule = []
         for queue in keysig.keys():
-            if makam_accidents[keysig[queue]][0] is "+":
-                rule.append([sort_rule_sharps[queue], 's'])
+            if cls._makam_accidentals[keysig[queue]][0] is "+":
+                rule.append([cls.sort_rule_sharps[queue], 's'])
             else:
-                rule.append([sort_rule_flats[queue], 'f'])
+                rule.append([cls.sort_rule_flats[queue], 'f'])
 
         # sorting of key signatures
         temp_keysig = ""
         for queue in sorted(rule):
             if queue[1] is "s":
-                key = sort_rule_notes_sharps[queue[0]]
+                key = cls.sort_rule_notes_sharps[queue[0]]
             else:
-                key = sort_rule_notes_flats[queue[0]]
-            accidentals_check.append(key + makam_accidents[keysig[key].
+                key = cls.sort_rule_notes_flats[queue[0]]
+            accidentals_check.append(key + cls._makam_accidentals[keysig[key].
                                      replace("+", "")])
             temp_keysig += "("
-            temp_keysig += (notes_western2lily[key.lower()] + " . ," +
-                            notes_keyaccidentals[keysig[key]])
+            temp_keysig += (cls._notes_western2lily[key.lower()] + " . ," +
+                            cls._key_sig_accidentals[keysig[key]])
             temp_keysig += ") "
 
             ly_stream.append(temp_keysig)
@@ -167,8 +167,9 @@ class ScoreConverter(object):
                 if note[3] == 1:  # dot flag
                     temp_note += note[0]  # step
                     # accidental
-                    temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[note[1]]  # octave
+                    temp_note += cls._accidentals[
+                        str(note[2]).replace('+', '')]
+                    temp_note += cls._octaves[note[1]]  # octave
 
                     temp_dur = temp_dur * 3.0 / 2
                     temp_note += str(int(temp_dur))
@@ -179,8 +180,9 @@ class ScoreConverter(object):
                         temp_note += "\\tuplet 3/2 {\n  "
                     temp_note += note[0]  # step
                     # accidental
-                    temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[note[1]]  # octave
+                    temp_note += cls._accidentals[
+                        str(note[2]).replace('+', '')]
+                    temp_note += cls._octaves[note[1]]  # octave
 
                     temp_dur = temp_dur * 2.0 / 3
                     temp_note += str(int(temp_dur))
@@ -188,8 +190,9 @@ class ScoreConverter(object):
                     tuplet -= 1
                 else:  # normal
                     temp_note += note[0]
-                    temp_note += accidentals[str(note[2]).replace('+', '')]
-                    temp_note += octaves[note[1]]
+                    temp_note += cls._accidentals[
+                        str(note[2]).replace('+', '')]
+                    temp_note += cls._octaves[note[1]]
                     temp_note += str(int(temp_dur))
                 if note[7]:
                     pos = len('    ')  # notes start with 4 spaces
