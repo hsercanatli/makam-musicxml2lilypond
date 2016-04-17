@@ -19,7 +19,7 @@ def _converter(symbtr_name):
 
     converter = ScoreConverter()
     ly_stream, mapping = converter.convert(
-        xml_file, ly_out=None, mapping_out=None, render_metadata=True)
+        xml_file, ly_out=None, render_metadata=True)
 
     with open(ly_file, 'r') as f:
         saved_ly = f.read().decode('utf-8')

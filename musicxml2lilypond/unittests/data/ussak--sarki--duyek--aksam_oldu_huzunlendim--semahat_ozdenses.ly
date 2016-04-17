@@ -5,7 +5,7 @@
 	title = "Akşam Oldu Hüzünlendim..."
 	composer = "Semahat Özdenses"
 	piece = "Makam: Şarkı, Form: Uşşak, Usul: Düyek"
-	poet = "Lyricist: Ahmet Cengizoğlu"
+	poet = "Ahmet Cengizoğlu"
 }
 {
 	%\override Score.SpacingSpanner.strict-note-spacing = ##t

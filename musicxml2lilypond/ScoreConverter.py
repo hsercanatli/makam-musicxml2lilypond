@@ -2,7 +2,6 @@
 from __future__ import unicode_literals, division
 from MusicXMLReader import MusicXMLReader
 import os
-import json
 import sqlite3
 
 __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
