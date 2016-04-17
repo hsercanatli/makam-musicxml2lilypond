@@ -1,3 +1,6 @@
+#### musicxml2lilypond v0.9.6
+ - Added time signature changes
+
 #### musicxml2lilypond v0.9.5
  - Removed mapping json saving
  - Made the lilypond output more compact
