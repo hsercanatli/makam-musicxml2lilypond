@@ -177,7 +177,8 @@ class ScoreConverter(object):
                 elif note[4] == 1:  # tuplet flag
                     if tuplet == 0:
                         tuplet = 4
-                        temp_note += "\\tuplet 3/2 {\n  "
+                        temp_note += "\\tuplet 3/2 {\n    "
+                    temp_note += '  '  # increase indentation
                     temp_note += note[0]  # step
                     # accidental
                     temp_note += cls._accidentals[
@@ -217,11 +218,11 @@ class ScoreConverter(object):
                             '''\\translate #'(0 . -2.5) \"''' +
                             ''.join(note[-1]).strip() + '''\"}}''')
 
+                temp_note += ' % SymbTr-txt row index #' + str(note[7])
                 if tuplet == 1:
-                    temp_note += "\n   }"
+                    temp_note += "\n    }"
                     tuplet = 0
 
-                temp_note += ' % SymbTr-txt row index #' + str(note[7])
                 ly_stream.append(temp_note)
             if xx == len(measures) - 1:
                 ly_stream.append('''\n    \\bar \"|.\"''')  # closing bar
