@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division
 import warnings
 import xml.etree.ElementTree as eT
+from xml.etree.ElementTree import ParseError
 
 __author__ = 'hsercanatli', 'burakuyar', 'andresferrero', 'sertansenturk'
 
@@ -25,11 +26,14 @@ class MusicXMLReader(object):
 
         # setting the xml tree
         parser = _XMLCommentHandler()
-        try:  # document
-            tree = eT.parse(xml_in, parser)
-            root = tree.getroot()
-        except IOError:  # string input
-            root = eT.fromstring(xml_in, parser)
+        try:
+            try:  # document
+                tree = eT.parse(xml_in, parser)
+                root = tree.getroot()
+            except IOError:  # string input
+                root = eT.fromstring(xml_in, parser)
+        except ParseError:
+            raise ParseError("Line 36(ish): Error parsing MusicXML file.")
 
         # getting beats and beat type
         beat_type = root.find('part/measure/attributes/time/beat-type').text
