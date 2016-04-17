@@ -24,8 +24,11 @@ class ScoreConverter(object):
 
         # getting headers
         if render_metadata:
-            poet_str = """
-\tpoet = \"Lyricist: {0:s}\"""".format(lyricist) if lyricist else ''
+            if lyricist and lyricist != '-':
+                poet_str = """
+\tpoet = \"{0:s}\"""".format(lyricist)
+            else:
+                poet_str = ''
 
             metadata_str = """
 \ttitle = \"{0}\"
@@ -226,8 +229,7 @@ class ScoreConverter(object):
         return ly_stream, mapping
 
     @classmethod
-    def convert(cls, xml_in, ly_out=None, mapping_out=None,
-                render_metadata=True):
+    def convert(cls, xml_in, ly_out=None, render_metadata=True):
         (measures, makam, usul, form, beats, beat_type, keysig, work_title,
          composer, poet) = MusicXMLReader.read(xml_in)
 
@@ -240,9 +242,5 @@ class ScoreConverter(object):
         if ly_out is not None:
             with open(ly_out, 'w') as outfile:
                 outfile.write(ly_stream.encode('utf-8'))
-
-        # save to json
-        if mapping_out is not None:
-            json.dump(mapping, open(mapping_out, 'w'))
 
         return ly_stream, mapping
