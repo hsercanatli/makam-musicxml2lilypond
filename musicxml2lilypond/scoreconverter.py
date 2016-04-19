@@ -1,6 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals, division
-from MusicXMLReader import MusicXMLReader
+from musicxmlreader import MusicXMLReader
 import os
 import sqlite3
 
