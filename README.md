@@ -14,7 +14,7 @@ Usage
 ------
 
 ```python
-from musicxml2lilypond.ScoreConverter import ScoreConverter
+from musicxml2lilypond.scoreconverter import ScoreConverter
 
 # input MusicXML file
 xml_file = "samplescores/pesendide--sazsemaisi--aksaksemai----iii_selim.xml"
